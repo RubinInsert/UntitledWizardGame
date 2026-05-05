@@ -36,8 +36,8 @@ bool loadMedia() {
     bool success {true};
 
     // Load image
-    std::string imagePath {"assets/snail.bmp"};
-    if( gPngTexture.loadFromFile("assets/snail.png") == false ) {
+    std::string imagePath {"assets/snail.png"};
+    if( gPngTexture.loadFromFile(SDL_GetBasePath() + imagePath) == false ) {
         SDL_Log( "Unable to load image %s! SDL error: %s\n", imagePath.c_str(), SDL_GetError() );
         success = false;
     }
