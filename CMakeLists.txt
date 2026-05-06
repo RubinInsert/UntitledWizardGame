@@ -28,9 +28,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # vcpkg makes this package available via 'find_package'
  find_package(SDL3 CONFIG REQUIRED)
  find_package(SDL3_image REQUIRED)
+ find_package(EnTT REQUIRED)
 # 5. Create the executable
 # Notice we point to src/main.cpp because of your new folder structure
-add_executable(${PROJECT_NAME} src/main.cpp src/Engine.cpp src/WindowManager.cpp src/AssetManager.cpp src/SpriteRenderer.cpp src/Sprite.cpp
+add_executable(${PROJECT_NAME} src/main.cpp src/Engine.cpp src/WindowManager.cpp src/AssetManager.cpp src/SpriteRenderer.cpp
  src/SpriteRenderer.cpp)
 
 # 6. Link SDL3
@@ -38,7 +39,8 @@ add_executable(${PROJECT_NAME} src/main.cpp src/Engine.cpp src/WindowManager.cpp
 # SDL3::SDL3main is required for the entry point (the main function)
 target_link_libraries(${PROJECT_NAME} PRIVATE
                     SDL3::SDL3
-                    SDL3_image::SDL3_image)
+                    SDL3_image::SDL3_image
+                    EnTT::EnTT)
 
 # 7. Include the src folder so headers are easy to find later
 target_include_directories(${PROJECT_NAME} PRIVATE 

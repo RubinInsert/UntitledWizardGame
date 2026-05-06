@@ -2,19 +2,14 @@
 #define SPRITERENDERER_H
 #include <vector>
 #include <algorithm>
+#include <entt/entt.hpp>
 #include "Sprite.hpp"
+#include "Camera.hpp"
 class SpriteRenderer {
     public:
     SpriteRenderer();
     ~SpriteRenderer();
-    void addSprite(Sprite* sprite);
-    void removeSprite(Sprite* sprite);
-    void clear();
-    void render(SDL_Renderer* renderer);
-    private:
-    void applyRemovals();
-    std::vector<Sprite*> spriteList;
-    std::vector<Sprite*> pendingRemovals;
+    void render(const entt::registry& registry, SDL_Renderer* renderer, const Camera& camera);
 };
 
 #endif

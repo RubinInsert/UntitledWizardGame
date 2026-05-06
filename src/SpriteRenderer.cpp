@@ -1,34 +1,28 @@
 #include "SpriteRenderer.hpp"
-
+#include "Transform.hpp"
+#include <SDL3/SDL.h>
 SpriteRenderer::SpriteRenderer() {}
 SpriteRenderer::~SpriteRenderer() {}
 
-void SpriteRenderer::addSprite(Sprite* sprite) {
-    if(!sprite) return;
-    if(std::find(spriteList.begin(), spriteList.end(), sprite) == spriteList.end()) {
-        spriteList.push_back(sprite);
+void SpriteRenderer::render(const entt::registry& registry, SDL_Renderer* renderer, const Camera& camera) {
+    auto view = registry.view<Transform, Sprite>();
+    std::vector<std::pair<entt::entity, float>> sortedEntities;
+    for (auto object : view) {
+        auto& transform = view.get<Transform>(object);
+        sortedEntities.emplace_back(object, transform.position.y);
     }
-}
-void SpriteRenderer::removeSprite(Sprite* sprite) {
-    if (!sprite) return;
-    if (std::find(pendingRemovals.begin(), pendingRemovals.end(), sprite) == pendingRemovals.end())
-        pendingRemovals.push_back(sprite);
-}
-void SpriteRenderer::applyRemovals() { // Mitigates race conditions with render function by delaying removals until after render
-    if (pendingRemovals.empty()) return;
-    for (Sprite* p : pendingRemovals) {
-        spriteList.erase(std::remove(spriteList.begin(), spriteList.end(), p), spriteList.end());
-    }
-    pendingRemovals.clear();
-}
-void SpriteRenderer::clear() {
-    spriteList.clear();
-    pendingRemovals.clear();
-}
-void SpriteRenderer::render(SDL_Renderer* renderer) {
-    applyRemovals();
-    for(Sprite* sprite : spriteList) {
-        if(!sprite || !sprite->mTexture) continue;
-        SDL_RenderTexture(renderer, sprite->mTexture, &sprite->srcRect, &sprite->destRect);
+    // Sort by Y position (ascending: lower Y renders first, higher Y on top)
+    std::sort(sortedEntities.begin(), sortedEntities.end(),
+        [](const auto& a, const auto& b) { return a.second < b.second; });
+
+    // Render the sorted entities (so "closer" sprites are rendered above further away sprites)
+    for (const auto& [entity, y] : sortedEntities) {
+        auto& transform = view.get<Transform>(entity);
+        auto& sprite = view.get<Sprite>(entity);
+        SDL_FRect destRect{ transform.position.x - camera.position.x,
+                            transform.position.y - camera.position.y,
+                            transform.size.x * camera.zoom,
+                            transform.size.y * camera.zoom};
+        SDL_RenderTexture(renderer, sprite.texture, &sprite.srcRect, &destRect);
     }
 }
