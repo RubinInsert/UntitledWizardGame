@@ -3,8 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <entt/entt.hpp>
-#include "Sprite.hpp"
-#include "Camera.hpp"
+#include "engine/render/Camera.hpp"
 class SpriteRenderer {
     public:
     SpriteRenderer();

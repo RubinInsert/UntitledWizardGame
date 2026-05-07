@@ -1,4 +1,4 @@
-#include "WindowManager.hpp"
+#include "engine/core/WindowManager.hpp"
 #include <string>
 WindowManager::WindowManager(): gameWindow {nullptr}, gameRenderer {nullptr} {}
 WindowManager::~WindowManager() {

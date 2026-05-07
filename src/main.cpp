@@ -2,7 +2,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3_image/SDL_image.h>
-#include "Engine.h"
+#include "engine/core/Engine.h"
 #include <string>
 // The window to be rendered to
 SDL_Window* gWindow{ nullptr };

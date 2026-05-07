@@ -32,13 +32,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # 5. Create the executable
 # Notice we point to src/main.cpp because of your new folder structure
 add_executable(${PROJECT_NAME}
- src/main.cpp 
- src/Engine.cpp 
- src/WindowManager.cpp
- src/AssetManager.cpp 
- src/SpriteRenderer.cpp
- src/SpriteRenderer.cpp
- src/InputManager.cpp)
+ src/main.cpp
+ src/engine/core/Engine.cpp
+ src/engine/core/WindowManager.cpp
+ src/engine/core/AssetManager.cpp
+ src/engine/core/InputManager.cpp
+ src/engine/render/SpriteRenderer.cpp)
 
 # 6. Link SDL3
 # SDL3::SDL3 is the main library

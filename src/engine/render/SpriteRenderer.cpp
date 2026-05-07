@@ -1,5 +1,6 @@
-#include "SpriteRenderer.hpp"
-#include "Transform.hpp"
+#include "engine/render/SpriteRenderer.hpp"
+#include "engine/ecs/components/Transform.hpp"
+#include "engine/ecs/components/Sprite.hpp"
 #include <SDL3/SDL.h>
 SpriteRenderer::SpriteRenderer() {}
 SpriteRenderer::~SpriteRenderer() {}

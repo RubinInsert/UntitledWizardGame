@@ -1,7 +1,7 @@
-#include "Engine.h"
-#include "Sprite.hpp"
-#include "Transform.hpp"
-#include "SpriteRenderer.hpp"
+#include "engine/core/Engine.h"
+#include "engine/ecs/components/Sprite.hpp"
+#include "engine/ecs/components/Transform.hpp"
+#include "engine/render/SpriteRenderer.hpp"
 #include <SDL3/SDL.h>
 constexpr int kScreenWidth{ 640 };
 constexpr int kScreenHeight{ 480 };
