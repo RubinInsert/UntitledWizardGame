@@ -4,10 +4,12 @@
 #include "engine/core/InputManager.hpp"
 #include "engine/render/Camera.hpp"
 #include "engine/core/AssetManager.hpp"
+#include "engine/core/TimeManager.hpp"
 #include "game/core/CameraSystem.hpp"
 class Game {
     public:
-        bool init (AssetManager& assetManager, InputManager& inputManager);
+        Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& time);
+        bool init (AssetManager& assetManager, InputManager& inputManager, TimeManager& time);
         void update();
         void shutdown();
         
@@ -23,8 +25,9 @@ class Game {
     CameraSystem cameraSystem{};
     Camera camera{};
     entt::entity player{entt::null};
-    AssetManager* assetManager{nullptr};
-    InputManager* inputManager{nullptr};
+    AssetManager& assetManager;
+    InputManager& inputManager;
+    TimeManager& time;
 
 };
 

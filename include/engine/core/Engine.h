@@ -4,6 +4,7 @@
 #include "engine/core/AssetManager.hpp"
 #include "engine/render/SpriteRenderer.hpp"
 #include "engine/core/InputManager.hpp"
+#include "engine/core/TimeManager.hpp"
 #include <entt/entt.hpp>
 class Game;
 class Engine {
@@ -14,10 +15,12 @@ class Engine {
 
         AssetManager& getAssetManager();
         InputManager& getInputManager();
+        TimeManager& getTimeManager();
     private:
         WindowManager windowManager;
         AssetManager assetManager;
         InputManager inputManager;
+        TimeManager timeManager;
         SpriteRenderer spriteRenderer;
 };
 

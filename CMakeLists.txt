@@ -39,7 +39,8 @@ add_executable(${PROJECT_NAME}
  src/engine/core/InputManager.cpp
  src/engine/render/SpriteRenderer.cpp
  src/game/core/Game.cpp
- src/game/core/CameraSystem.cpp)
+ src/game/core/CameraSystem.cpp
+ src/engine/core/TimeManager.cpp)
 
 # 6. Link SDL3
 # SDL3::SDL3 is the main library

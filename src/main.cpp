@@ -35,8 +35,7 @@ int main (int argc, char* argv[]) {
         SDL_Log("Unable to initalize program!");
         return 1;
     }
-    Game game;
-    game.init(engine.getAssetManager(), engine.getInputManager());
+    Game game(engine.getAssetManager(), engine.getInputManager(), engine.getTimeManager());
     // Load Media
     engine.Run(game);
     close();

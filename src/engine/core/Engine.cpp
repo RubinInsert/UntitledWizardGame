@@ -27,6 +27,10 @@ bool Engine::Init() {
 }
 int Engine::Run(Game& game) {
             while (inputManager.shouldQuit() == false) {
+                // Update elapsed and delta times.
+                timeManager.update();
+
+                // Register inputs
                 inputManager.update();
 
                 game.update();
@@ -48,4 +52,7 @@ AssetManager& Engine::getAssetManager() {
 }
 InputManager& Engine::getInputManager() {
     return inputManager;
+}
+TimeManager& Engine::getTimeManager() {
+    return timeManager;
 }

@@ -3,20 +3,20 @@
 #include "engine/ecs/components/Transform.hpp"
 #include "engine/core/InputManager.hpp"
 #include "game/core/CameraSystem.hpp"
-bool Game::init (AssetManager& assetManager, InputManager& inputManager) {
-    this->assetManager = &assetManager;
-    this->inputManager = &inputManager;
+Game::Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& time)
+    : assetManager(assetManager)
+    , inputManager(inputManager)
+    , time(time)
+{
     createScene();
     camera.position = {0.f, 0.f};
     camera.zoom = 1.f;
-    return true;
 }
-
 void Game::createScene() {
             std::string imagePath {"assets/snail.png"};
             auto entity = registry.create();
             // Load texture from asset manager
-            SDL_Texture* texture = assetManager->getTexture(imagePath);
+            SDL_Texture* texture = assetManager.getTexture(imagePath);
             float width = 0.f, height = 0.f;
             if (texture) SDL_GetTextureSize(texture, &width, &height);
             
@@ -29,7 +29,7 @@ void Game::createScene() {
             auto entity2 = registry.create();
             
             // Load texture from asset manager
-            SDL_Texture* texture2 = assetManager->getTexture(imagePath);
+            SDL_Texture* texture2 = assetManager.getTexture(imagePath);
             float width2 = 0.f, height2 = 0.f;
             if (texture2) SDL_GetTextureSize(texture2, &width2, &height2);
 
@@ -41,21 +41,19 @@ void Game::createScene() {
 }
 
 void Game::update () {
-    if (!inputManager) return;
-
     // If left mouse button is down, allow CameraSystem to handle dragging
-    if (inputManager->isMouseButtonDown(SDL_BUTTON_LEFT)) {
-        cameraSystem.update(camera, *inputManager);
+    if (inputManager.isMouseButtonDown(SDL_BUTTON_LEFT)) {
+        cameraSystem.update(camera, inputManager);
         return;
     }
 
     // Otherwise, follow the player transform if available
     if (player != entt::null && registry.valid(player) && registry.all_of<Transform>(player)) {
         const Transform& playerTransform = registry.get<Transform>(player);
-        cameraSystem.followPlayer(camera, playerTransform);
+        cameraSystem.followPlayer(camera, playerTransform, time);
     } else {
         // fallback test target
-        cameraSystem.followPlayer(camera, Transform{SDL_FPoint{0.f, 0.f}, SDL_FPoint{5.f, 5.f}});
+        cameraSystem.followPlayer(camera, Transform{SDL_FPoint{0.f, 0.f}, SDL_FPoint{5.f, 5.f}}, time);
     }
 }
 
