@@ -10,7 +10,8 @@ void SpriteRenderer::render(const entt::registry& registry, SDL_Renderer* render
     std::vector<std::pair<entt::entity, float>> sortedEntities;
     for (auto object : view) {
         auto& transform = view.get<Transform>(object);
-        sortedEntities.emplace_back(object, transform.position.y);
+        float depthKey = transform.position.y + transform.size.y * 0.5f; // Get bottom of sprite
+        sortedEntities.emplace_back(object, depthKey);
     }
     // Sort by Y position (ascending: lower Y renders first, higher Y on top)
     std::sort(sortedEntities.begin(), sortedEntities.end(),
@@ -20,8 +21,12 @@ void SpriteRenderer::render(const entt::registry& registry, SDL_Renderer* render
     for (const auto& [entity, y] : sortedEntities) {
         auto& transform = view.get<Transform>(entity);
         auto& sprite = view.get<Sprite>(entity);
-        SDL_FRect destRect{ transform.position.x - camera.position.x,
-                            transform.position.y - camera.position.y,
+
+        // Calculate the top left corner of the sprite in world space
+        float worldX = transform.position.x - transform.size.x * 0.5f;
+        float worldY = transform.position.y - transform.size.y * 0.5f;
+        SDL_FRect destRect{ (worldX - camera.position.x) * camera.zoom,
+                            (worldY - camera.position.y) * camera.zoom,
                             transform.size.x * camera.zoom,
                             transform.size.y * camera.zoom};
         SDL_RenderTexture(renderer, sprite.texture, &sprite.srcRect, &destRect);

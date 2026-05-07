@@ -9,19 +9,23 @@
 class Game;
 class Engine {
     public:
-        Engine();
+        Engine(int screenWidth, int screenHeight);
         bool Init();
         int Run(Game& game);
 
         AssetManager& getAssetManager();
         InputManager& getInputManager();
         TimeManager& getTimeManager();
+        int getScreenWidth();
+        int getScreenHeight();
     private:
         WindowManager windowManager;
         AssetManager assetManager;
         InputManager inputManager;
         TimeManager timeManager;
         SpriteRenderer spriteRenderer;
+        int screenWidth;
+        int screenHeight;
 };
 
 #endif

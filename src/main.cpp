@@ -29,13 +29,13 @@ void close () {
 
 }
 int main (int argc, char* argv[]) {
-    Engine engine;
+    Engine engine(kScreenWidth, kScreenHeight);
     // Initialize
     if ( engine.Init() == false)  {
         SDL_Log("Unable to initalize program!");
         return 1;
     }
-    Game game(engine.getAssetManager(), engine.getInputManager(), engine.getTimeManager());
+    Game game(engine.getAssetManager(), engine.getInputManager(), engine.getTimeManager(), engine.getScreenWidth(), engine.getScreenHeight());
     // Load Media
     engine.Run(game);
     close();

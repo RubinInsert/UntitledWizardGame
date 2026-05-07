@@ -5,7 +5,7 @@
 #include "game/components/MovementStats.hpp""
 #include "engine/core/InputManager.hpp"
 #include "game/core/CameraSystem.hpp"
-Game::Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& time)
+Game::Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& time, float viewportWidth, float viewportHeight)
     : assetManager(assetManager)
     , inputManager(inputManager)
     , time(time)
@@ -13,6 +13,8 @@ Game::Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& 
     createScene();
     camera.position = {0.f, 0.f};
     camera.zoom = 1.f;
+    camera.viewportWidth = viewportWidth;
+    camera.viewportHeight = viewportHeight;
 }
 void Game::createScene() {
             std::string imagePath {"assets/snail.png"};

@@ -6,7 +6,7 @@
 #include <SDL3/SDL.h>
 constexpr int kScreenWidth{ 640 };
 constexpr int kScreenHeight{ 480 };
-Engine::Engine(): windowManager{}, assetManager{nullptr}, inputManager{}, spriteRenderer{} {}
+Engine::Engine(int screenWidth, int screenHeight): windowManager{}, assetManager{nullptr}, inputManager{}, spriteRenderer{}, screenWidth(screenWidth), screenHeight(screenHeight) {}
 bool Engine::Init() {
     bool success {true};
     // Initialize SDL
@@ -55,4 +55,10 @@ InputManager& Engine::getInputManager() {
 }
 TimeManager& Engine::getTimeManager() {
     return timeManager;
+}
+int Engine::getScreenWidth() {
+    return screenWidth;
+}
+int Engine::getScreenHeight() {
+    return screenHeight;
 }

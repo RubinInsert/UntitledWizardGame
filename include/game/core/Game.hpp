@@ -10,7 +10,7 @@
 #include "game/movement/PhysicsSystem.hpp"
 class Game {
     public:
-        Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& time);
+        Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& time, float viewportWidth, float viewportHeight);
         bool init (AssetManager& assetManager, InputManager& inputManager, TimeManager& time);
         void update();
         void shutdown();
