@@ -32,7 +32,7 @@ void Game::createScene() {
             registry.emplace<Sprite>(player, Sprite{texture, SDL_FRect{0.f, 0.f, width, height}});
             
             // Create transform component
-            registry.emplace<Transform>(player, Transform{SDL_FPoint{0.f, 0.f}, SDL_FPoint{width/2, height/2}});
+            registry.emplace<Transform>(player, Transform{SDL_FPoint{0.f, 0.f}, SDL_FPoint{width, height}});
             registry.emplace<Velocity>(player, Velocity{SDL_FPoint{0.f, 0.f}});
             registry.emplace<MovementStats>(player, MovementStats{5.f});
 
