@@ -2,7 +2,8 @@
 #include "engine/ecs/components/Sprite.hpp"
 #include "engine/ecs/components/Transform.hpp"
 #include "engine/ecs/components/Velocity.hpp"
-#include "game/components/MovementStats.hpp""
+#include "game/components/MovementStats.hpp"
+#include "game/world/TileMap.hpp"
 #include "engine/core/InputManager.hpp"
 #include "game/core/CameraSystem.hpp"
 Game::Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& time, WorldSettings& worldSettings, float viewportWidth, float viewportHeight)
@@ -10,6 +11,7 @@ Game::Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& 
     , inputManager(inputManager)
     , time(time)
     , worldSettings(worldSettings)
+    , tileMap(0, 0, nullptr)
 {
     createScene();
     camera.position = {0.f, 0.f};
@@ -19,9 +21,10 @@ Game::Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& 
 }
 void Game::createScene() {
             std::string imagePath {"assets/snail.png"};
+            std::string playerAssetPath {"assets/one_magician.png"};
             player = registry.create();
             // Load texture from asset manager
-            SDL_Texture* texture = assetManager.getTexture(imagePath);
+            SDL_Texture* texture = assetManager.getTexture(playerAssetPath);
             float width = 0.f, height = 0.f;
             if (texture) SDL_GetTextureSize(texture, &width, &height);
             
@@ -45,6 +48,9 @@ void Game::createScene() {
 
             // Create transform component
             registry.emplace<Transform>(entity2, Transform{SDL_FPoint{1.f, 2.f}, SDL_FPoint{width2, height2}});
+
+            SDL_Texture* tex = assetManager.getTexture("assets/one_tile.png");
+            tileMap = TileMap(32, 32, tex);
 }
 
 void Game::update () {
@@ -66,13 +72,14 @@ void Game::update () {
         // fallback test target
         cameraSystem.followPlayer(camera, Transform{SDL_FPoint{0.f, 0.f}, SDL_FPoint{5.f, 5.f}}, time, worldSettings);
     }
-
 }
 
 void Game::shutdown() {
 
 }
-
+void Game::render(SDL_Renderer& renderer) {
+    tileMap.render(renderer, camera, worldSettings);
+}
 entt::registry& Game::getRegistry() {
     return registry;
 }

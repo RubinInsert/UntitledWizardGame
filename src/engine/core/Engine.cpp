@@ -37,7 +37,9 @@ int Engine::Run(Game& game) {
                 // Fill the surface white
                 SDL_SetRenderDrawColor(windowManager.getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
                 SDL_RenderClear(windowManager.getRenderer());
-
+                
+                // Render additional game renders
+                game.render(*windowManager.getRenderer());
                 // Render sprites through the sprite renderer
                 spriteRenderer.render(game.getRegistry(), windowManager.getRenderer(), game.getCamera(), worldSettings);
 

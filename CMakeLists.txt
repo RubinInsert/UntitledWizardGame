@@ -43,6 +43,7 @@ add_executable(${PROJECT_NAME}
  src/game/core/CameraSystem.cpp
  src/game/player/PlayerController.cpp
  src/game/movement/PhysicsSystem.cpp
+ src/game/world/TileMap.cpp
  )
 
 # 6. Link SDL3
