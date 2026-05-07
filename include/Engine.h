@@ -3,6 +3,7 @@
 #include "WindowManager.hpp"
 #include "AssetManager.hpp"
 #include "SpriteRenderer.hpp"
+#include "InputManager.hpp"
 #include <entt/entt.hpp>
 class Engine {
     public:
@@ -13,6 +14,7 @@ class Engine {
     private:
         WindowManager windowManager;
         AssetManager assetManager;
+        InputManager inputManager;
         entt::registry registry;
         SpriteRenderer spriteRenderer;
         Camera camera;
