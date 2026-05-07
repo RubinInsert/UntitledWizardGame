@@ -5,6 +5,7 @@
 #include "engine/render/SpriteRenderer.hpp"
 #include "engine/core/InputManager.hpp"
 #include "engine/core/TimeManager.hpp"
+#include "engine/core/WorldSettings.hpp"
 #include <entt/entt.hpp>
 class Game;
 class Engine {
@@ -16,6 +17,7 @@ class Engine {
         AssetManager& getAssetManager();
         InputManager& getInputManager();
         TimeManager& getTimeManager();
+        WorldSettings& getWorldSettings();
         int getScreenWidth();
         int getScreenHeight();
     private:
@@ -24,6 +26,7 @@ class Engine {
         InputManager inputManager;
         TimeManager timeManager;
         SpriteRenderer spriteRenderer;
+        WorldSettings worldSettings;
         int screenWidth;
         int screenHeight;
 };

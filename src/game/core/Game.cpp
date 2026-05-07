@@ -5,10 +5,11 @@
 #include "game/components/MovementStats.hpp""
 #include "engine/core/InputManager.hpp"
 #include "game/core/CameraSystem.hpp"
-Game::Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& time, float viewportWidth, float viewportHeight)
+Game::Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& time, WorldSettings& worldSettings, float viewportWidth, float viewportHeight)
     : assetManager(assetManager)
     , inputManager(inputManager)
     , time(time)
+    , worldSettings(worldSettings)
 {
     createScene();
     camera.position = {0.f, 0.f};
@@ -30,7 +31,7 @@ void Game::createScene() {
             // Create transform component
             registry.emplace<Transform>(player, Transform{SDL_FPoint{0.f, 0.f}, SDL_FPoint{width/2, height/2}});
             registry.emplace<Velocity>(player, Velocity{SDL_FPoint{0.f, 0.f}});
-            registry.emplace<MovementStats>(player, MovementStats{100.f});
+            registry.emplace<MovementStats>(player, MovementStats{5.f});
 
             auto entity2 = registry.create();
             
@@ -43,7 +44,7 @@ void Game::createScene() {
             registry.emplace<Sprite>(entity2, Sprite{texture2, SDL_FRect{0.f, 0.f, width2, height2}});
 
             // Create transform component
-            registry.emplace<Transform>(entity2, Transform{SDL_FPoint{5.f, 128.f}, SDL_FPoint{width2, height2}});
+            registry.emplace<Transform>(entity2, Transform{SDL_FPoint{1.f, 2.f}, SDL_FPoint{width2, height2}});
 }
 
 void Game::update () {
@@ -60,10 +61,10 @@ void Game::update () {
     // Otherwise, follow the player transform if available
     if (player != entt::null && registry.valid(player) && registry.all_of<Transform>(player)) {
         const Transform& playerTransform = registry.get<Transform>(player);
-        cameraSystem.followPlayer(camera, playerTransform, time);
+        cameraSystem.followPlayer(camera, playerTransform, time, worldSettings);
     } else {
         // fallback test target
-        cameraSystem.followPlayer(camera, Transform{SDL_FPoint{0.f, 0.f}, SDL_FPoint{5.f, 5.f}}, time);
+        cameraSystem.followPlayer(camera, Transform{SDL_FPoint{0.f, 0.f}, SDL_FPoint{5.f, 5.f}}, time, worldSettings);
     }
 
 }

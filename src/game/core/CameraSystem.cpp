@@ -11,14 +11,12 @@ void CameraSystem::update(Camera& camera, const InputManager& input) {
         camera.position.y -= delta.y / camera.zoom;
 }
 
-void CameraSystem::followPlayer(Camera& camera, const Transform& playerTransform, const TimeManager& time) {
+void CameraSystem::followPlayer(Camera& camera, const Transform& playerTransform, const TimeManager& time, const WorldSettings& worldSettings) {
     float smoothing = 10.f * time.getDeltaTime();
-
-    float halfViewportX = camera.viewportWidth / (2.0f * camera.zoom);
-    float halfViewportY = camera.viewportHeight / (2.0f * camera.zoom);
-
-    float targetX = playerTransform.position.x - halfViewportX;
-    float targetY = playerTransform.position.y - halfViewportY;
+    
+    // Isometric projection
+    float targetX = (playerTransform.position.x - playerTransform.position.y) * (worldSettings.tileWidth * 0.5f);
+    float targetY = (playerTransform.position.x + playerTransform.position.y) * (worldSettings.tileHeight * 0.5f);
 
     camera.position.x += (targetX - camera.position.x) * smoothing;
     camera.position.y += (targetY - camera.position.y) * smoothing;

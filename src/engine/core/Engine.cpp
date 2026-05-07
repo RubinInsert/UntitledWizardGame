@@ -39,7 +39,7 @@ int Engine::Run(Game& game) {
                 SDL_RenderClear(windowManager.getRenderer());
 
                 // Render sprites through the sprite renderer
-                spriteRenderer.render(game.getRegistry(), windowManager.getRenderer(), game.getCamera());
+                spriteRenderer.render(game.getRegistry(), windowManager.getRenderer(), game.getCamera(), worldSettings);
 
                 // Update the screen
                 SDL_RenderPresent(windowManager.getRenderer());
@@ -55,6 +55,9 @@ InputManager& Engine::getInputManager() {
 }
 TimeManager& Engine::getTimeManager() {
     return timeManager;
+}
+WorldSettings& Engine::getWorldSettings() {
+    return worldSettings;
 }
 int Engine::getScreenWidth() {
     return screenWidth;

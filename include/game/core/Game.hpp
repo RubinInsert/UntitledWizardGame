@@ -5,12 +5,13 @@
 #include "engine/render/Camera.hpp"
 #include "engine/core/AssetManager.hpp"
 #include "engine/core/TimeManager.hpp"
+#include "engine/core/WorldSettings.hpp"
 #include "game/core/CameraSystem.hpp"
 #include "game/player/PlayerController.hpp"
 #include "game/movement/PhysicsSystem.hpp"
 class Game {
     public:
-        Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& time, float viewportWidth, float viewportHeight);
+        Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& time, WorldSettings& worldSettings, float viewportWidth, float viewportHeight);
         bool init (AssetManager& assetManager, InputManager& inputManager, TimeManager& time);
         void update();
         void shutdown();
@@ -32,6 +33,7 @@ class Game {
     AssetManager& assetManager;
     InputManager& inputManager;
     TimeManager& time;
+    WorldSettings& worldSettings;
 
 };
 
