@@ -3,6 +3,7 @@
 #include <SDL3/SDL_main.h>
 #include <SDL3_image/SDL_image.h>
 #include "engine/core/Engine.h"
+#include "game/core/Game.hpp"
 #include <string>
 // The window to be rendered to
 SDL_Window* gWindow{ nullptr };
@@ -28,24 +29,23 @@ void close () {
 
 }
 int main (int argc, char* argv[]) {
-    // Final exit code
-    int exitCode {0};
-    Engine game;
+    Engine engine;
     // Initialize
-    if ( game.Init() == false)  {
+    if ( engine.Init() == false)  {
         SDL_Log("Unable to initalize program!");
-        exitCode = 1;
-    } else {
-        // Load Media
-        game.Run();
-        close();
-        // if(game.Run() == false) {
-        //     SDL_Log("Unable to load media!\n");
-        //     exitCode = 2;
-        // } else {
-            
-        //     close();
-        // }
+        return 1;
     }
+    Game game;
+    game.init(engine.getAssetManager(), engine.getInputManager());
+    // Load Media
+    engine.Run(game);
+    close();
+    // if(game.Run() == false) {
+    //     SDL_Log("Unable to load media!\n");
+    //     exitCode = 2;
+    // } else {
+        
+    //     close();
+    // }
     return 0;
 }

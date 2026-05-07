@@ -2,6 +2,7 @@
 #include "engine/ecs/components/Sprite.hpp"
 #include "engine/ecs/components/Transform.hpp"
 #include "engine/render/SpriteRenderer.hpp"
+#include "game/core/Game.hpp"
 #include <SDL3/SDL.h>
 constexpr int kScreenWidth{ 640 };
 constexpr int kScreenHeight{ 480 };
@@ -24,51 +25,27 @@ bool Engine::Init() {
     }
     return success;
 }
-int Engine::Run() {
-            std::string imagePath {"assets/snail.png"};
-            auto entity = registry.create();
-            // Load texture from asset manager
-            SDL_Texture* texture = assetManager.getTexture(imagePath);
-            float width = 0.f, height = 0.f;
-            if (texture) SDL_GetTextureSize(texture, &width, &height);
-            
-            // Create sprite component with loaded texture
-            registry.emplace<Sprite>(entity, Sprite{texture, SDL_FRect{0.f, 0.f, width, height}});
-            
-            // Create transform component
-            registry.emplace<Transform>(entity, Transform{SDL_FPoint{0.f, 0.f}, SDL_FPoint{width, height}});
-
-            auto entity2 = registry.create();
-            
-            // Load texture from asset manager
-            SDL_Texture* texture2 = assetManager.getTexture(imagePath);
-            float width2 = 0.f, height2 = 0.f;
-            if (texture) SDL_GetTextureSize(texture, &width2, &height2);
-            
-            // Create sprite component with loaded texture
-            registry.emplace<Sprite>(entity2, Sprite{texture, SDL_FRect{0.f, 0.f, width2, height2}});
-            
-            // Create transform component
-            registry.emplace<Transform>(entity2, Transform{SDL_FPoint{5.f, 128.f}, SDL_FPoint{width2, height2}});
+int Engine::Run(Game& game) {
             while (inputManager.shouldQuit() == false) {
                 inputManager.update();
-                if (inputManager.isMouseButtonDown(SDL_BUTTON_LEFT)) {
-                    SDL_FPoint mouse = inputManager.getMousePosition();
-                    SDL_FPoint lastMouse = inputManager.getPreviousMousePosition();
-                    SDL_FPoint delta{mouse.x - lastMouse.x, mouse.y - lastMouse.y};
 
-                    camera.position.x -= delta.x / camera.zoom;
-                    camera.position.y -= delta.y / camera.zoom;
-                }
+                game.update();
                 // Fill the surface white
                 SDL_SetRenderDrawColor(windowManager.getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
                 SDL_RenderClear(windowManager.getRenderer());
 
                 // Render sprites through the sprite renderer
-                spriteRenderer.render(registry, windowManager.getRenderer(), camera);
+                spriteRenderer.render(game.getRegistry(), windowManager.getRenderer(), game.getCamera());
 
                 // Update the screen
                 SDL_RenderPresent(windowManager.getRenderer());
             }
     return 0;
+}
+
+AssetManager& Engine::getAssetManager() {
+    return assetManager;
+}
+InputManager& Engine::getInputManager() {
+    return inputManager;
 }
