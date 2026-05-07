@@ -37,10 +37,13 @@ add_executable(${PROJECT_NAME}
  src/engine/core/WindowManager.cpp
  src/engine/core/AssetManager.cpp
  src/engine/core/InputManager.cpp
+ src/engine/core/TimeManager.cpp
  src/engine/render/SpriteRenderer.cpp
  src/game/core/Game.cpp
  src/game/core/CameraSystem.cpp
- src/engine/core/TimeManager.cpp)
+ src/game/player/PlayerController.cpp
+ src/game/movement/PhysicsSystem.cpp
+ )
 
 # 6. Link SDL3
 # SDL3::SDL3 is the main library

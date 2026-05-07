@@ -6,6 +6,8 @@
 #include "engine/core/AssetManager.hpp"
 #include "engine/core/TimeManager.hpp"
 #include "game/core/CameraSystem.hpp"
+#include "game/player/PlayerController.hpp"
+#include "game/movement/PhysicsSystem.hpp"
 class Game {
     public:
         Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& time);
@@ -24,6 +26,8 @@ class Game {
     entt::registry registry;
     CameraSystem cameraSystem{};
     Camera camera{};
+    PlayerController playerController;
+    PhysicsSystem physics;
     entt::entity player{entt::null};
     AssetManager& assetManager;
     InputManager& inputManager;
