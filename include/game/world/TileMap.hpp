@@ -5,10 +5,10 @@
 #include <SDL3/SDL.h>
 #include "engine/render/Camera.hpp"
 #include "engine/core/WorldSettings.hpp"
-
+#include "engine/render/SpriteSheet.hpp"
 class TileMap {
 public:
-    TileMap(int width, int height, SDL_Texture* tileTexture);
+    TileMap(int width, int height, SpriteSheet* spriteSheet);
     ~TileMap();
 
     void render(SDL_Renderer& renderer, const Camera& camera, const WorldSettings& worldSettings);
@@ -22,7 +22,7 @@ public:
 private:
     int width;
     int height;
-    SDL_Texture* tileTexture;
+    SpriteSheet* spriteSheet;
     std::vector<int> tileData;
 };
 

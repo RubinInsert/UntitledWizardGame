@@ -1,8 +1,15 @@
 #include "game/world/TileMap.hpp"
+#include "engine/render/SpriteSheet.hpp"
 #include <SDL3/SDL.h>
 
-TileMap::TileMap(int width, int height, SDL_Texture* tileTexture)
-    : width(width), height(height), tileTexture(tileTexture) {
+TileMap::TileMap(int width, int height, SpriteSheet* spriteSheet)
+    : width(width), height(height), spriteSheet(spriteSheet) {
+    tileData.resize(width * height);
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            tileData[y * width + x] = (x + y) % 10;
+        }
+    }
     tileData.resize(width * height, 0);  // All tiles are ID 0
 }
 
@@ -22,6 +29,12 @@ void TileMap::setTile(int x, int y, int tileID) {
 }
 
 void TileMap::render(SDL_Renderer& renderer, const Camera& camera, const WorldSettings& worldSettings) {
+    float width = 0.f, height = 0.f;
+    if (spriteSheet) SDL_GetTextureSize(spriteSheet->getTexture(), &width, &height);    
+    // Choose frame from sprite
+    float frameWidth = width / 16.f;
+    float frameHeight = height / 1.f;
+    // HELLO I WAS WORKING HERE
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             // Get the tile type
@@ -44,7 +57,7 @@ void TileMap::render(SDL_Renderer& renderer, const Camera& camera, const WorldSe
                 worldSettings.tileHeight * camera.zoom
             };
 
-            SDL_RenderTexture(&renderer, tileTexture, nullptr, &destRect);
+            SDL_RenderTexture(&renderer, spriteSheet->getTexture(), &spriteSheet->getFrame(tileID), &destRect);
         }
     }
 }

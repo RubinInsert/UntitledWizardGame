@@ -10,7 +10,7 @@ AssetManager::AssetManager(SDL_Renderer* renderer):
     
 }
 AssetManager::~AssetManager() {}
-SDL_Texture* AssetManager::getTexture(const std::string& filePath) {
+SDL_Texture* AssetManager::getTexture(const std::string& filePath) const {
     auto iterator = mTextures.find(filePath);
 
     if(iterator != mTextures.end()) {
@@ -34,6 +34,16 @@ SDL_Texture* AssetManager::getTexture(const std::string& filePath) {
         return texture;
         }
     }
+}
+SpriteSheet* AssetManager::getSpriteSheet(const std::string& assetPath, 
+                                          float frameWidth, float frameHeight,
+                                          int cols, int rows, float marginX, float marginY, float spacingX, float spacingY) {
+    auto it = mSpriteSheets.find(assetPath);
+    if (it != mSpriteSheets.end()) return &it->second;  // Cached
+    
+    // Create new sheet (which internally calls getTexture for the asset)
+    auto result = mSpriteSheets.emplace(assetPath, SpriteSheet(*this, assetPath, frameWidth, frameHeight, cols, rows, marginX, marginY, spacingX, spacingY));
+    return &result.first->second; // UNDERSTAND WHAT THIS DOES
 }
 
 void AssetManager::setRenderer(SDL_Renderer* renderer) {

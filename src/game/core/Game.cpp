@@ -1,11 +1,13 @@
 #include "game/core/Game.hpp"
 #include "engine/ecs/components/Sprite.hpp"
+#include "engine/render/SpriteSheet.hpp"
 #include "engine/ecs/components/Transform.hpp"
 #include "engine/ecs/components/Velocity.hpp"
 #include "game/components/MovementStats.hpp"
 #include "game/world/TileMap.hpp"
 #include "engine/core/InputManager.hpp"
 #include "game/core/CameraSystem.hpp"
+#include <vector>
 Game::Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& time, WorldSettings& worldSettings, float viewportWidth, float viewportHeight)
     : assetManager(assetManager)
     , inputManager(inputManager)
@@ -21,18 +23,22 @@ Game::Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& 
 }
 void Game::createScene() {
             std::string imagePath {"assets/snail.png"};
-            std::string playerAssetPath {"assets/one_magician.png"};
+            std::string playerAssetPath {"assets/magician.png"};
             player = registry.create();
             // Load texture from asset manager
             SDL_Texture* texture = assetManager.getTexture(playerAssetPath);
             float width = 0.f, height = 0.f;
             if (texture) SDL_GetTextureSize(texture, &width, &height);
             
+            // Choose frame from sprite
+            float frameWidth = width / 8.f;
+            float frameHeight = height / 8.f;
             // Create sprite component with loaded texture
-            registry.emplace<Sprite>(player, Sprite{texture, SDL_FRect{0.f, 0.f, width, height}});
+            SpriteSheet* spriteSheet = assetManager.getSpriteSheet("assets/magician.png", 128, 128, 8, 8, 64, 64, 64, 64);
+            registry.emplace<Sprite>(player, Sprite{spriteSheet, 0});  // frame 0
             
             // Create transform component
-            registry.emplace<Transform>(player, Transform{SDL_FPoint{0.f, 0.f}, SDL_FPoint{width, height}});
+            registry.emplace<Transform>(player, Transform{SDL_FPoint{0.f, 0.f}, SDL_FPoint{frameWidth/2, frameHeight/2}});
             registry.emplace<Velocity>(player, Velocity{SDL_FPoint{0.f, 0.f}});
             registry.emplace<MovementStats>(player, MovementStats{5.f});
 
@@ -42,15 +48,16 @@ void Game::createScene() {
             SDL_Texture* texture2 = assetManager.getTexture(imagePath);
             float width2 = 0.f, height2 = 0.f;
             if (texture2) SDL_GetTextureSize(texture2, &width2, &height2);
-
+            
+            SpriteSheet* spriteSheet2 = assetManager.getSpriteSheet("assets/snail.png", width2, height2, 1, 1, 0.f, 0.f, 0.f, 0.f);
             // Create sprite component with loaded texture
-            registry.emplace<Sprite>(entity2, Sprite{texture2, SDL_FRect{0.f, 0.f, width2, height2}});
+            registry.emplace<Sprite>(entity2, Sprite{spriteSheet2, 0});
 
             // Create transform component
             registry.emplace<Transform>(entity2, Transform{SDL_FPoint{1.f, 2.f}, SDL_FPoint{width2, height2}});
 
-            SDL_Texture* tex = assetManager.getTexture("assets/one_tile.png");
-            tileMap = TileMap(32, 32, tex);
+            SpriteSheet* tileSet = assetManager.getSpriteSheet("assets/simple_tileset.png", 64.f, 32.f, 16, 1, 0.f, 0.f, 0.f, 0.f);
+            tileMap = TileMap(32, 32, tileSet);
 }
 
 void Game::update () {
