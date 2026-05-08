@@ -7,6 +7,7 @@
 #include "game/world/TileMap.hpp"
 #include "engine/core/InputManager.hpp"
 #include "game/core/CameraSystem.hpp"
+#include "game/world/TileMapLoader.hpp"
 #include <vector>
 Game::Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& time, WorldSettings& worldSettings, float viewportWidth, float viewportHeight)
     : assetManager(assetManager)
@@ -56,8 +57,36 @@ void Game::createScene() {
             // Create transform component
             registry.emplace<Transform>(entity2, Transform{SDL_FPoint{1.f, 2.f}, SDL_FPoint{width2, height2}});
 
-            SpriteSheet* tileSet = assetManager.getSpriteSheet("assets/simple_tileset.png", 64.f, 32.f, 16, 1, 0.f, 0.f, 0.f, 0.f);
-            tileMap = TileMap(32, 32, tileSet);
+
+
+            // TILE MAP LOADING TESTING
+            // Load the map from Tiled JSON
+            LoadedMap loadedMap = TileMapLoader::loadTileMap("assets/worldData/maps/map01.json");
+            // For each tile layer, create a TileMap and get it's spritesheet
+            std::vector<TileMap> tileMaps;
+            for(const auto& loadedLayer : loadedMap.layers) {
+                // Get or create sprite sheet for this layer's tileset
+                SpriteSheet* spriteSheet = assetManager.getSpriteSheet(
+                    loadedLayer.tilesetImagePath,
+                    loadedMap.tileWidth,
+                    loadedMap.tileHeight,
+                    loadedLayer.tileSet.columns,
+                    loadedLayer.tileSet.rows,
+                    loadedLayer.tileSet.margin,
+                    loadedLayer.tileSet.margin,
+                    loadedLayer.tileSet.spacing,
+                    loadedLayer.tileSet.spacing
+                );
+                // Create Tile Map
+                TileMap tileMap(loadedMap.width, loadedMap.height, spriteSheet);
+                // Set the tile data
+                tileMap.setTileData(loadedLayer.tileIds);
+                
+                tileMaps.push_back(tileMap);
+            }
+            if (!tileMaps.empty()) {
+                tileMap = tileMaps[0];
+            }
 }
 
 void Game::update () {

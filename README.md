@@ -22,3 +22,4 @@ cmake --build build
 
 ## Resources
 [SDL3 Hello World Tutorial](https://lazyfoo.net/tutorials/SDL3/01-hello-sdl3/index2.php)
+[Tiled Global Tile IDs](https://doc.mapeditor.org/en/stable/reference/global-tile-ids/)

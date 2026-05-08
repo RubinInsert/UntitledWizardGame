@@ -27,7 +27,7 @@ void TileMap::setTile(int x, int y, int tileID) {
         tileData[y * width + x] = tileID;
     }
 }
-
+void TileMap::setTileData(const std::vector<int>& data) { tileData = data; }
 void TileMap::render(SDL_Renderer& renderer, const Camera& camera, const WorldSettings& worldSettings) {
     float width = 0.f, height = 0.f;
     if (spriteSheet) SDL_GetTextureSize(spriteSheet->getTexture(), &width, &height);    

@@ -19,6 +19,7 @@ public:
     int getWidth() const { return width; }
     int getHeight() const { return height; }
 
+    void setTileData(const std::vector<int>& data);
 private:
     int width;
     int height;

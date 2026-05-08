@@ -29,6 +29,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
  find_package(SDL3 CONFIG REQUIRED)
  find_package(SDL3_image REQUIRED)
  find_package(EnTT REQUIRED)
+ find_package(nlohmann_json CONFIG REQUIRED)
 # 5. Create the executable
 # Notice we point to src/main.cpp because of your new folder structure
 add_executable(${PROJECT_NAME}
@@ -45,6 +46,7 @@ add_executable(${PROJECT_NAME}
  src/game/player/PlayerController.cpp
  src/game/movement/PhysicsSystem.cpp
  src/game/world/TileMap.cpp
+ src/game/world/TileMapLoader.cpp
  )
 
 # 6. Link SDL3
@@ -53,7 +55,8 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} PRIVATE
                     SDL3::SDL3
                     SDL3_image::SDL3_image
-                    EnTT::EnTT)
+                    EnTT::EnTT
+                    nlohmann_json::nlohmann_json)
 
 # 7. Include the src folder so headers are easy to find later
 target_include_directories(${PROJECT_NAME} PRIVATE 
