@@ -43,7 +43,7 @@ SpriteSheet* AssetManager::getSpriteSheet(const std::string& assetPath,
     
     // Create new sheet (which internally calls getTexture for the asset)
     auto result = mSpriteSheets.emplace(assetPath, SpriteSheet(*this, assetPath, frameWidth, frameHeight, cols, rows, marginX, marginY, spacingX, spacingY));
-    return &result.first->second; // UNDERSTAND WHAT THIS DOES
+    return &result.first->second; // Return sprite sheet from pair<std::string, SpriteSheet*>
 }
 
 void AssetManager::setRenderer(SDL_Renderer* renderer) {
