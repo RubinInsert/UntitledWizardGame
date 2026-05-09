@@ -2,6 +2,7 @@
 #include "engine/ecs/components/Transform.hpp"
 #include "engine/ecs/components/Sprite.hpp"
 #include "engine/render/SpriteSheet.hpp"
+#include "engine/render/Coordinate.hpp"
 #include <SDL3/SDL.h>
 SpriteRenderer::SpriteRenderer() {}
 SpriteRenderer::~SpriteRenderer() {}
@@ -11,7 +12,9 @@ void SpriteRenderer::render(const entt::registry& registry, SDL_Renderer* render
     std::vector<std::pair<entt::entity, float>> sortedEntities;
     for (auto object : view) {
         auto& transform = view.get<Transform>(object);
-        float depthKey = transform.position.y + transform.size.y * 0.5f; // Get bottom of sprite
+        // For depth sorting we convert to grid Y (down-positive) used by iso math.
+        SDL_FPoint iso = Coordinate::WorldToIso(transform.position.x, transform.position.y, worldSettings);
+        float depthKey = iso.y; // Get bottom of sprite in Isometric space
         sortedEntities.emplace_back(object, depthKey);
     }
     // Sort by Y position (ascending: lower Y renders first, higher Y on top)
@@ -23,24 +26,23 @@ void SpriteRenderer::render(const entt::registry& registry, SDL_Renderer* render
         auto& transform = view.get<Transform>(entity);
         auto& sprite = view.get<Sprite>(entity);
         
-        // get sprite
-        // Isometric projection
-        float isoX = (transform.position.x - transform.position.y) * (worldSettings.tileWidth * 0.5f);
-        float isoY = (transform.position.x + transform.position.y) * (worldSettings.tileHeight * 0.5f);
-        
-        // Camera offset
-        // Calculate the top left corner of the sprite in world space
-        float screenX = (isoX - camera.position.x) * camera.zoom + camera.viewportWidth * 0.5f;
-        float screenY = (isoY - camera.position.y) * camera.zoom + camera.viewportHeight * 0.5f;
-
-        // Draw sprite centered horizontally, anchored to feet/bottom
-        SDL_FRect destRect{
-            screenX - transform.size.x * 0.5f * camera.zoom,
-            screenY - transform.size.y * camera.zoom,
-            transform.size.x * camera.zoom,
-            transform.size.y * camera.zoom
-        };
+        // Project from World to Screen for renderer      
+        SDL_FPoint screen = Coordinate::WorldToScreen(transform.position.x, transform.position.y, camera, worldSettings);
+        // We get the width/height from the actual frame source in the spritesheet
         const SDL_FRect& frameRect = sprite.src->getFrame(sprite.frame);
+        float visualWidth = frameRect.w;
+        float visualHeight = frameRect.h;
+
+        // 4. DESTINATION RECT
+        // screenX/screenY is the "anchor point" (the feet).
+        // We center the sprite horizontally and sit it ON TOP of screenY.
+        SDL_FRect destRect{
+            screen.x - (visualWidth * 0.5f * camera.zoom), // Centered horizontally
+            screen.y - (visualHeight * camera.zoom),        // Sits on the ground
+            visualWidth * camera.zoom,
+            visualHeight * camera.zoom
+        };
+
         SDL_RenderTexture(renderer, sprite.src->getTexture(), &frameRect, &destRect);
     }
 }

@@ -11,8 +11,8 @@ void PlayerController::update(entt::registry& registry, entt::entity player, con
     velocity.velocity.y = 0;
     if(input.isKeyDown(SDLK_A)) velocity.velocity.x -= 1.0f;
     if(input.isKeyDown(SDLK_D)) velocity.velocity.x += 1.0f;
-    if(input.isKeyDown(SDLK_W)) velocity.velocity.y -= 1.0f;
-    if(input.isKeyDown(SDLK_S)) velocity.velocity.y += 1.0f;
+    if(input.isKeyDown(SDLK_W)) velocity.velocity.y += 1.0f;
+    if(input.isKeyDown(SDLK_S)) velocity.velocity.y -= 1.0f;
 
     // Normalize movement so diagonals arent faster
     float lengthSq = velocity.velocity.x * velocity.velocity.x

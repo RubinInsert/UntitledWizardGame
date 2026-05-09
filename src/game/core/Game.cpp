@@ -35,27 +35,27 @@ void Game::createScene() {
             float frameWidth = width / 8.f;
             float frameHeight = height / 8.f;
             // Create sprite component with loaded texture
-            SpriteSheet* spriteSheet = assetManager.getSpriteSheet("assets/magician.png", 128, 128, 8, 8, 64, 64, 64, 64);
-            registry.emplace<Sprite>(player, Sprite{spriteSheet, 0});  // frame 0
+            SpriteSheet* spriteSheet = assetManager.getSpriteSheet("assets/magician.png", 128, 128, 8, 8, 64, 64, 128, 128);
+            registry.emplace<Sprite>(player, Sprite{spriteSheet, 16});  // frame 0
             
             // Create transform component
-            registry.emplace<Transform>(player, Transform{SDL_FPoint{0.f, 0.f}, SDL_FPoint{frameWidth/2, frameHeight/2}});
+            registry.emplace<Transform>(player, Transform{SDL_FPoint{0.f, 0.f}, SDL_FPoint{0.75f, 0.75f}});
             registry.emplace<Velocity>(player, Velocity{SDL_FPoint{0.f, 0.f}});
             registry.emplace<MovementStats>(player, MovementStats{5.f});
 
-            auto entity2 = registry.create();
+            // auto entity2 = registry.create();
             
-            // Load texture from asset manager
-            SDL_Texture* texture2 = assetManager.getTexture(imagePath);
-            float width2 = 0.f, height2 = 0.f;
-            if (texture2) SDL_GetTextureSize(texture2, &width2, &height2);
+            // // Load texture from asset manager
+            // SDL_Texture* texture2 = assetManager.getTexture(imagePath);
+            // float width2 = 0.f, height2 = 0.f;
+            // if (texture2) SDL_GetTextureSize(texture2, &width2, &height2);
             
-            SpriteSheet* spriteSheet2 = assetManager.getSpriteSheet("assets/snail.png", width2, height2, 1, 1, 0.f, 0.f, 0.f, 0.f);
-            // Create sprite component with loaded texture
-            registry.emplace<Sprite>(entity2, Sprite{spriteSheet2, 0});
+            // SpriteSheet* spriteSheet2 = assetManager.getSpriteSheet("assets/snail.png", width2, height2, 1, 1, 0.f, 0.f, 0.f, 0.f);
+            // // Create sprite component with loaded texture
+            // registry.emplace<Sprite>(entity2, Sprite{spriteSheet2, 0});
 
             // Create transform component
-            registry.emplace<Transform>(entity2, Transform{SDL_FPoint{1.f, 2.f}, SDL_FPoint{width2, height2}});
+            //registry.emplace<Transform>(entity2, Transform{SDL_FPoint{1.f, 2.f}, SDL_FPoint{width2, height2}});
 
 
 
@@ -93,7 +93,7 @@ void Game::update () {
 
     playerController.update(registry, player, inputManager, time.getDeltaTime());
     physics.update(registry, time.getDeltaTime());
-
+    collisions.update(registry, tileMap);
 
     // If left mouse button is down, allow CameraSystem to handle dragging
     if (inputManager.isMouseButtonDown(SDL_BUTTON_LEFT)) {

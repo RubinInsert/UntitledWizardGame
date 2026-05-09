@@ -2,8 +2,8 @@
 #define WORLDSETTINGS_HPP
 
 struct WorldSettings {
-    float tileWidth{64.f};
-    float tileHeight{32.f};
+    static constexpr float tileWidth{64.f};
+    static constexpr float tileHeight{32.f};
 };
 
 #endif

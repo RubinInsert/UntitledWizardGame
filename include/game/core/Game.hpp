@@ -10,6 +10,7 @@
 #include "game/core/CameraSystem.hpp"
 #include "game/player/PlayerController.hpp"
 #include "game/movement/PhysicsSystem.hpp"
+#include "game/movement/CollisionSystem.hpp"
 #include "game/world/TileMap.hpp"
 class Game {
     public:
@@ -31,6 +32,7 @@ class Game {
     Camera camera{};
     PlayerController playerController;
     PhysicsSystem physics;
+    CollisionSystem collisions;
     entt::entity player{entt::null};
     AssetManager& assetManager;
     InputManager& inputManager;

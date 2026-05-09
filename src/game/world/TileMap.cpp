@@ -1,5 +1,6 @@
 #include "game/world/TileMap.hpp"
 #include "engine/render/SpriteSheet.hpp"
+#include "engine/render/Coordinate.hpp"
 #include <SDL3/SDL.h>
 
 TileMap::TileMap(int width, int height, SpriteSheet* spriteSheet)
@@ -29,32 +30,23 @@ void TileMap::setTile(int x, int y, int tileID) {
 }
 void TileMap::setTileData(const std::vector<int>& data) { tileData = data; }
 void TileMap::render(SDL_Renderer& renderer, const Camera& camera, const WorldSettings& worldSettings) {
-    float width = 0.f, height = 0.f;
-    if (spriteSheet) SDL_GetTextureSize(spriteSheet->getTexture(), &width, &height);    
-    // Choose frame from sprite
-    float frameWidth = width / 16.f;
-    float frameHeight = height / 1.f;
-    // HELLO I WAS WORKING HERE
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            // Get the tile type
-            int tileID = getTile(x, y);
-            // Exception ID for empty tile
-            if (tileID == -1) continue;  // Skip invalid tiles
-            // Isometric projection
-            float isoX = (x - y) * (worldSettings.tileWidth * 0.5f);
-            float isoY = (x + y) * (worldSettings.tileHeight * 0.5f);
+            int tileID = getTile(x, y); // Get the tile at (x, y) world coordinates
+            if (tileID == -1) continue;
 
-            // Camera offset and viewport centering
-            float screenX = (isoX - camera.position.x) * camera.zoom + camera.viewportWidth * 0.5f;
-            float screenY = (isoY - camera.position.y) * camera.zoom + camera.viewportHeight * 0.5f;
+            // 1. Convert Grid coordinates to screen Screen (No Y-flip needed, y is already Grid Space)
+            SDL_FPoint screen = Coordinate::GridToScreen(x, y, camera, worldSettings);
+            // Scale width/height according to camera zoom;
+            float finalW = worldSettings.tileWidth * camera.zoom;
+            float finalH = worldSettings.tileHeight * camera.zoom;
 
-            // Draw tile
-            SDL_FRect destRect{
-                screenX,
-                screenY,
-                worldSettings.tileWidth * camera.zoom,
-                worldSettings.tileHeight * camera.zoom
+            // 4. DRAW CENTERING
+            SDL_FRect destRect {
+                screen.x - (finalW * 0.5f),
+                screen.y - (finalH * 0.5f),
+                finalW,
+                finalH
             };
 
             SDL_RenderTexture(&renderer, spriteSheet->getTexture(), &spriteSheet->getFrame(tileID), &destRect);

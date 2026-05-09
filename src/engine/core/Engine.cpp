@@ -2,6 +2,7 @@
 #include "engine/ecs/components/Sprite.hpp"
 #include "engine/ecs/components/Transform.hpp"
 #include "engine/render/SpriteRenderer.hpp"
+#include "engine/render/DebugDrawer.hpp"
 #include "game/core/Game.hpp"
 #include <SDL3/SDL.h>
 constexpr int kScreenWidth{ 640 };
@@ -27,6 +28,8 @@ bool Engine::Init() {
 }
 int Engine::Run(Game& game) {
             while (inputManager.shouldQuit() == false) {
+                // Clear any previously drawn debug boxes
+                DebugDrawer::Clear();
                 // Update elapsed and delta times.
                 timeManager.update();
 
@@ -43,6 +46,8 @@ int Engine::Run(Game& game) {
                 // Render sprites through the sprite renderer
                 spriteRenderer.render(game.getRegistry(), windowManager.getRenderer(), game.getCamera(), worldSettings);
 
+                // Debug draws
+                DebugDrawer::DrawIsometric(windowManager.getRenderer(), game.getCamera(), worldSettings);
                 // Update the screen
                 SDL_RenderPresent(windowManager.getRenderer());
             }
