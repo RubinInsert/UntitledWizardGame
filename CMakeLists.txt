@@ -39,6 +39,7 @@ add_executable(${PROJECT_NAME}
  src/engine/core/AssetManager.cpp
  src/engine/core/InputManager.cpp
  src/engine/core/TimeManager.cpp
+ src/engine/core/AnimatorSystem.cpp
  src/engine/render/SpriteRenderer.cpp
  src/engine/render/SpriteSheet.cpp
  src/game/core/Game.cpp

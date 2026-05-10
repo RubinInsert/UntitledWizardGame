@@ -7,7 +7,10 @@
 #include "game/world/TileMap.hpp"
 #include "engine/core/InputManager.hpp"
 #include "game/core/CameraSystem.hpp"
+#include "engine/ecs/components/Animation.hpp"
+#include "engine/ecs/components/AnimationSequence.hpp"
 #include "game/world/TileMapLoader.hpp"
+#include "game/player/PlayerAnims.hpp"
 #include <vector>
 Game::Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& time, WorldSettings& worldSettings, float viewportWidth, float viewportHeight)
     : assetManager(assetManager)
@@ -35,14 +38,18 @@ void Game::createScene() {
             float frameWidth = width / 8.f;
             float frameHeight = height / 8.f;
             // Create sprite component with loaded texture
-            SpriteSheet* spriteSheet = assetManager.getSpriteSheet("assets/magician.png", 128, 128, 8, 8, 64, 64, 128, 128);
+            SpriteSheet* spriteSheet = assetManager.getSpriteSheet("assets/male_unarmored.png", 128, 128, 8, 8, 64, 64, 128, 128);
             registry.emplace<Sprite>(player, Sprite{spriteSheet, 16});  // frame 0
             
             // Create transform component
             registry.emplace<Transform>(player, Transform{SDL_FPoint{0.f, 0.f}, SDL_FPoint{0.75f, 0.75f}});
             registry.emplace<Velocity>(player, Velocity{SDL_FPoint{0.f, 0.f}});
             registry.emplace<MovementStats>(player, MovementStats{5.f});
-
+            registry.emplace<Animation>(player, 
+                PlayerAnims::IDLE_NORTH, // startFrame, frameCount, duration, loop
+                0.0f, // timer
+                0     // currentFrameOffset
+            );
             // auto entity2 = registry.create();
             
             // // Load texture from asset manager
@@ -90,7 +97,7 @@ void Game::createScene() {
 }
 
 void Game::update () {
-
+    animatorSystem.update(registry, time.getDeltaTime());
     playerController.update(registry, player, inputManager, time.getDeltaTime());
     physics.update(registry, time.getDeltaTime());
     collisions.update(registry, tileMap);

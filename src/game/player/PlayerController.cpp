@@ -2,10 +2,15 @@
 #include "engine/ecs/components/Transform.hpp"
 #include "engine/ecs/components/Velocity.hpp"
 #include "game/components/MovementStats.hpp"
+#include "engine/ecs/components/Animation.hpp"
+#include "game/player/PlayerAnims.hpp"
+#include "engine/ecs/components/Sprite.hpp"
 void PlayerController::update(entt::registry& registry, entt::entity player, const InputManager& input, double deltaTime) {
     if(player == entt::null || !registry.valid(player)) return;
     Transform& transform = registry.get<Transform>(player);
     Velocity& velocity = registry.get<Velocity>(player);
+    Animation& animation = registry.get<Animation>(player);
+    Sprite& sprite = registry.get<Sprite>(player);
     MovementStats& movementStats = registry.get<MovementStats>(player);
     velocity.velocity.x = 0;
     velocity.velocity.y = 0;
@@ -26,5 +31,43 @@ void PlayerController::update(entt::registry& registry, entt::entity player, con
     // Scale movement to walking speed
     velocity.velocity.x *= movementStats.walkSpeed;
     velocity.velocity.y *= movementStats.walkSpeed;
-
+    AnimationSequence nextSeq = animation.sequence;
+    // Handle Animations
+    switch(velocity.direction) {
+        case Direction::NORTH:
+            nextSeq = lengthSq > 0 ? PlayerAnims::WALK_NORTH : PlayerAnims::IDLE_NORTH;
+            break;
+        case Direction::NORTHEAST:
+            nextSeq = lengthSq > 0 ? PlayerAnims::WALK_NORTHEAST : PlayerAnims::IDLE_NORTHEAST;
+            break;
+        case Direction::EAST:
+            nextSeq = lengthSq > 0 ? PlayerAnims::WALK_EAST : PlayerAnims::IDLE_EAST;
+            break;
+        case Direction::SOUTHEAST:
+            nextSeq = lengthSq > 0 ? PlayerAnims::WALK_SOUTHEAST : PlayerAnims::IDLE_SOUTHEAST;
+            break;
+        case Direction::SOUTH:
+            nextSeq = lengthSq > 0 ? PlayerAnims::WALK_SOUTH : PlayerAnims::IDLE_SOUTH;
+            break;
+        case Direction::SOUTHWEST:
+            nextSeq = lengthSq > 0 ? PlayerAnims::WALK_SOUTHWEST : PlayerAnims::IDLE_SOUTHWEST;
+            break;
+        case Direction::WEST:
+            nextSeq = lengthSq > 0 ? PlayerAnims::WALK_WEST : PlayerAnims::IDLE_WEST;
+            break;
+        case Direction::NORTHWEST:
+            nextSeq = lengthSq > 0 ? PlayerAnims::WALK_NORTHWEST : PlayerAnims::IDLE_NORTHWEST;
+            break;
+        case Direction::NONE:
+            nextSeq = PlayerAnims::IDLE_EAST;
+            break;
+    }
+    if (nextSeq.name != animation.sequence.name) {
+        animation.sequence = nextSeq;
+        animation.timer = 0.0f;
+        animation.currentFrameOffset = 0;
+        
+        // Immediate visual sync
+        sprite.frame = animation.sequence.startFrame;
+    }
 }

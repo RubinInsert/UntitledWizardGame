@@ -7,6 +7,7 @@
 #include "engine/core/AssetManager.hpp"
 #include "engine/core/TimeManager.hpp"
 #include "engine/core/WorldSettings.hpp"
+#include "engine/core/AnimatorSystem.hpp"
 #include "game/core/CameraSystem.hpp"
 #include "game/player/PlayerController.hpp"
 #include "game/movement/PhysicsSystem.hpp"
@@ -33,6 +34,7 @@ class Game {
     PlayerController playerController;
     PhysicsSystem physics;
     CollisionSystem collisions;
+    AnimatorSystem animatorSystem;
     entt::entity player{entt::null};
     AssetManager& assetManager;
     InputManager& inputManager;
