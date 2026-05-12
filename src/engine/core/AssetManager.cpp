@@ -2,7 +2,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 #include <string>
-
+#include "engine/core/Audio.hpp"
 AssetManager::AssetManager(SDL_Renderer* renderer):
     mRenderer{renderer}
 
@@ -46,6 +46,23 @@ SpriteSheet* AssetManager::getSpriteSheet(const std::string& assetPath,
     return &result.first->second; // Return sprite sheet from pair<std::string, SpriteSheet*>
 }
 
+bool AssetManager::getAudioStream(const std::string& filePath, Audio& outAudio) const {
+    auto iterator = mAudioStreams.find(filePath);
+    if(iterator != mAudioStreams.end()) {
+        SDL_Log("Audio retrieved from cache!");
+        outAudio = iterator->second; // If texture already cached; return
+        return true;
+    } else {
+        Audio result;
+        if (!SDL_LoadWAV(filePath.c_str(), &result.spec, &result.buffer, &result.length)) {
+            SDL_Log("Failed to load WAV: %s", SDL_GetError());
+            return false;
+        }
+        auto inserted = mAudioStreams.emplace(filePath, std::move(result));
+        outAudio = inserted.first->second;
+        return true;
+    }
+}
 void AssetManager::setRenderer(SDL_Renderer* renderer) {
     mRenderer = renderer;
 }
