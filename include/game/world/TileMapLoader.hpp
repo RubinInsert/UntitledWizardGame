@@ -23,9 +23,9 @@ struct LoadedMap {
     int height;
     int tileWidth;
     int tileHeight;
+    int collisionLayerIndex;
     std::vector<LoadedTileLayer> layers;
 };
-
 
 
 class TileMapLoader {

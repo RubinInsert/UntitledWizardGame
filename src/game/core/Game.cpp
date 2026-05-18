@@ -17,7 +17,6 @@ Game::Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& 
     , inputManager(inputManager)
     , time(time)
     , worldSettings(worldSettings)
-    , tileMap(0, 0, nullptr)
 {
     createScene();
     camera.position = {0.f, 0.f};
@@ -70,7 +69,7 @@ void Game::createScene() {
             // Load the map from Tiled JSON
             LoadedMap loadedMap = TileMapLoader::loadTileMap("assets/worldData/maps/map01.json");
             // For each tile layer, create a TileMap and get it's spritesheet
-            std::vector<TileMap> tileMaps;
+            //std::vector<TileMap> tileMaps; // Defined in Game.hpp now
             for(const auto& loadedLayer : loadedMap.layers) {
                 // Get or create sprite sheet for this layer's tileset
                 SpriteSheet* spriteSheet = assetManager.getSpriteSheet(
@@ -91,17 +90,16 @@ void Game::createScene() {
                 
                 tileMaps.push_back(tileMap);
             }
-            if (!tileMaps.empty()) {
-                tileMap = tileMaps[0];
-            }
+            TileMap loadedCollisionLayer(loadedMap.width, loadedMap.height, spriteSheet);
+            loadedCollisionLayer.setTileData(loadedMap.layers[loadedMap.collisionLayerIndex].tileIds);
+            Game::collisionLayer = loadedCollisionLayer;
 }
 
 void Game::update () {
     animatorSystem.update(registry, time.getDeltaTime());
     playerController.update(registry, player, inputManager, time.getDeltaTime());
     physics.update(registry, time.getDeltaTime());
-    collisions.update(registry, tileMap);
-
+    collisions.update(registry, collisionLayer);
     // If left mouse button is down, allow CameraSystem to handle dragging
     if (inputManager.isMouseButtonDown(SDL_BUTTON_LEFT)) {
         cameraSystem.update(camera, inputManager);
@@ -121,7 +119,10 @@ void Game::shutdown() {
 
 }
 void Game::render(SDL_Renderer& renderer) {
-    tileMap.render(renderer, camera, worldSettings);
+    for (TileMap tileMap : tileMaps) {
+        tileMap.render(renderer, camera, worldSettings);
+    }
+    
 }
 entt::registry& Game::getRegistry() {
     return registry;

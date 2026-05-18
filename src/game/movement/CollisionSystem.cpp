@@ -1,8 +1,10 @@
 #include "game/movement/CollisionSystem.hpp"
 #include "engine/ecs/components/Transform.hpp"
+#include "engine/ecs/components/Velocity.hpp"
 #include "engine/render/DebugDrawer.hpp"
 void CollisionSystem::update(entt::registry& registry, const TileMap& tileMap) {
-    auto view = registry.view<Transform>();
+    // Only check collision for entities that have velocity (moving entities)
+    auto view = registry.view<Transform, Velocity>();
     for(auto entity : view) {
         auto& transform = view.get<Transform>(entity);
 
@@ -32,6 +34,7 @@ void CollisionSystem::update(entt::registry& registry, const TileMap& tileMap) {
         DebugDrawer::AddBox(transform.position.x, entityCenterY, transform.size.x, transform.size.y);
 
         // Check all tiles the sprite overlaps (tileMap expects grid coords y-down)
+        // Only tiles with ID > 0 are solid; ID 0 is empty
         bool collision = false;
         for (int x = minTileX; x <= maxTileX; ++x) {
             for (int y = minTileY; y <= maxTileY; ++y) {
@@ -44,7 +47,14 @@ void CollisionSystem::update(entt::registry& registry, const TileMap& tileMap) {
             }
             if (collision) break;
         }
-
+        // Debug: Show all tile collision boxes in 50x50 area
+        for(int x = 0; x <= 50; ++x) {
+            for(int y = 0; y <= 50; ++y) {
+                if(tileMap.getTile(x, y) != -1) {
+                    DebugDrawer::AddBox(static_cast<float>(x) + 0.5f, -(static_cast<float>(y) + 0.5f), 1.f, 1.f);
+                }
+            }
+        }
         if (collision) {
             transform.position = transform.previousPosition;
         }

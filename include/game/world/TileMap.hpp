@@ -9,6 +9,7 @@
 class TileMap {
 public:
     TileMap(int width, int height, SpriteSheet* spriteSheet);
+    TileMap();
     ~TileMap();
 
     void render(SDL_Renderer& renderer, const Camera& camera, const WorldSettings& worldSettings);
@@ -19,10 +20,13 @@ public:
     int getWidth() const { return width; }
     int getHeight() const { return height; }
 
+    bool isRenderable();
+    void setRenderable(bool isRenderable);
     void setTileData(const std::vector<int>& data);
 private:
     int width;
     int height;
+    bool renderable;
     SpriteSheet* spriteSheet;
     std::vector<int> tileData;
 };

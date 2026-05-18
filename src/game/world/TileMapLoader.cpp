@@ -119,6 +119,9 @@ LoadedMap TileMapLoader::loadTileMap(const std::string& mapFilePath) {
         }
 
     result.layers.push_back(std::move(tileLayer));
+    if(layer.contains("class") && layer["class"] == "Collision") {
+        result.collisionLayerIndex = result.layers.size() - 1;
+    }
     }
     return result;
 }

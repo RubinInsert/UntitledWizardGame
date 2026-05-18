@@ -5,15 +5,10 @@
 
 TileMap::TileMap(int width, int height, SpriteSheet* spriteSheet)
     : width(width), height(height), spriteSheet(spriteSheet) {
-    tileData.resize(width * height);
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            tileData[y * width + x] = (x + y) % 10;
-        }
-    }
-    tileData.resize(width * height, 0);  // All tiles are ID 0
+    tileData.resize(width * height, 0);  // Initialize all tiles as empty (ID 0)
 }
-
+TileMap::TileMap()
+    : width(0), height(0), spriteSheet(nullptr) {}
 TileMap::~TileMap() {
     // Don't delete tileTexture; Game owns it
 }
@@ -30,6 +25,7 @@ void TileMap::setTile(int x, int y, int tileID) {
 }
 void TileMap::setTileData(const std::vector<int>& data) { tileData = data; }
 void TileMap::render(SDL_Renderer& renderer, const Camera& camera, const WorldSettings& worldSettings) {
+    if(renderable == false) return;
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             int tileID = getTile(x, y); // Get the tile at (x, y) world coordinates
@@ -52,4 +48,11 @@ void TileMap::render(SDL_Renderer& renderer, const Camera& camera, const WorldSe
             SDL_RenderTexture(&renderer, spriteSheet->getTexture(), &spriteSheet->getFrame(tileID), &destRect);
         }
     }
+}
+
+bool TileMap::isRenderable() {
+    return renderable;
+}
+void TileMap::setRenderable(bool isRenderable) {
+    renderable = isRenderable;
 }

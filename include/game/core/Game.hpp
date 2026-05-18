@@ -40,7 +40,8 @@ class Game {
     InputManager& inputManager;
     TimeManager& time;
     WorldSettings& worldSettings;
-    TileMap tileMap;
+    std::vector<TileMap> tileMaps;
+    TileMap collisionLayer;
 
 };
 
