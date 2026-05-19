@@ -5,7 +5,7 @@
 void CollisionSystem::update(entt::registry& registry, const TileMap& tileMap) {
     // Only check collision for entities that have velocity (moving entities)
     auto view = registry.view<Transform, Velocity>();
-    for(auto entity : view) {
+    for(auto& entity : view) {
         auto& transform = view.get<Transform>(entity);
 
 
@@ -48,13 +48,13 @@ void CollisionSystem::update(entt::registry& registry, const TileMap& tileMap) {
             if (collision) break;
         }
         // Debug: Show all tile collision boxes in 50x50 area
-        for(int x = 0; x <= 50; ++x) {
-            for(int y = 0; y <= 50; ++y) {
-                if(tileMap.getTile(x, y) != -1) {
-                    DebugDrawer::AddBox(static_cast<float>(x) + 0.5f, -(static_cast<float>(y) + 0.5f), 1.f, 1.f);
-                }
-            }
-        }
+        // for(int x = 0; x <= 50; ++x) {
+        //     for(int y = 0; y <= 50; ++y) {
+        //         if(tileMap.getTile(x, y) != -1) {
+        //             DebugDrawer::AddBox(static_cast<float>(x) + 0.5f, -(static_cast<float>(y) + 0.5f), 1.f, 1.f);
+        //         }
+        //     }
+        // }
         if (collision) {
             transform.position = transform.previousPosition;
         }
