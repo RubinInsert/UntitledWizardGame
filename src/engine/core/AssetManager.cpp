@@ -2,7 +2,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 #include <string>
-
+#include <stdexcept>
 AssetManager::AssetManager(SDL_Renderer* renderer):
     mRenderer{renderer}
 
@@ -15,24 +15,22 @@ SDL_Texture* AssetManager::getTexture(const std::string& filePath) const {
 
     if(iterator != mTextures.end()) {
         SDL_Log("Image retrieved from cache!");
-        return iterator->second; // If texture already cached; return
+        
+        return iterator->second.get(); // If texture already cached; return raw pointer for observation
     } else {
-        std::string absolutePath = std::string(SDL_GetBasePath()) + filePath;
-        if(SDL_Surface* loadedSurface = IMG_Load( absolutePath.c_str() ); loadedSurface == nullptr) {
-        SDL_Log( "Unable to load image %s! SDL_image error: %s\n", absolutePath.c_str(), SDL_GetError() );
-        return nullptr;
-        } else {
-        // Create a texture from surface
-        SDL_Texture* texture = nullptr;
-        if(texture = SDL_CreateTextureFromSurface(mRenderer, loadedSurface); texture == nullptr) {
-            SDL_Log( "Unable to create texture from loaded pixels! SDL error: %s\n", SDL_GetError() );
-        } else {
-            mTextures.emplace(filePath, texture);
+        std::string absolutePath = std::string(SDL_GetBasePath()) + filePath; // SDL_GetBasePath() is cached internally in SDL3. No Freeing is required.
+        SDL_Texture* rawTex = IMG_LoadTexture(mRenderer, absolutePath.c_str());
+        if(!rawTex) { // If a texture was not found:
+            // Return a pre-loaded fallback texture instead of crashing
+            if(filePath == "assets/textures/missing_error.png") throw std::runtime_error(filePath + "is missing! No Fallback."); // Prevent infinite recurrsion.
+            return getTexture("assets/textures/missing_error.png"); // If a texture was not found, utilise default missing error texture.
         }
-        // Clean loaded surface
-        SDL_DestroySurface(loadedSurface);
-        return texture;
-        }
+        std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> texture(
+        IMG_LoadTexture(mRenderer, absolutePath.c_str()), 
+        SDL_DestroyTexture
+        ); // Declare with SDL_DestroyTexture as a custom destructor.
+        auto cachedTexture = mTextures.emplace(filePath, std::move(texture)); // Transfer ownership of the pointer into the map
+        return cachedTexture.first->second.get(); // Return raw pointer for observation
     }
 }
 SpriteSheet* AssetManager::getSpriteSheet(const std::string& assetPath, 
