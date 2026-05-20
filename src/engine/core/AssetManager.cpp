@@ -33,15 +33,19 @@ SDL_Texture* AssetManager::getTexture(const std::string& filePath) const {
         return cachedTexture.first->second.get(); // Return raw pointer for observation
     }
 }
-SpriteSheet* AssetManager::getSpriteSheet(const std::string& assetPath, 
+SpriteSheet* AssetManager::getSpriteSheet(const std::string& filePath, 
                                           float frameWidth, float frameHeight,
                                           int cols, int rows, float marginX, float marginY, float spacingX, float spacingY) {
-    auto it = mSpriteSheets.find(assetPath);
-    if (it != mSpriteSheets.end()) return &it->second;  // Cached
+    auto it = mSpriteSheets.find(filePath);
+    if (it != mSpriteSheets.end()) {
+        return it->second.get();  // Return raw observer pointer
+    }
     
-    // Create new sheet (which internally calls getTexture for the asset)
-    auto result = mSpriteSheets.emplace(assetPath, SpriteSheet(*this, assetPath, frameWidth, frameHeight, cols, rows, marginX, marginY, spacingX, spacingY));
-    return &result.first->second; // Return sprite sheet from pair<std::string, SpriteSheet*>
+    // Create dynamically on the heap inside a unique_ptr
+    auto spriteSheet = std::make_unique<SpriteSheet>(*this, filePath, frameWidth, frameHeight, cols, rows, marginX, marginY, spacingX, spacingY);
+    
+    auto cachedSpriteSheet = mSpriteSheets.emplace(filePath, std::move(spriteSheet));
+    return cachedSpriteSheet.first->second.get(); // Return observable raw pointer
 }
 
 void AssetManager::setRenderer(SDL_Renderer* renderer) {
