@@ -26,7 +26,7 @@ SDL_Texture* AssetManager::getTexture(const std::string& filePath) const {
             return getTexture("assets/textures/missing_error.png"); // If a texture was not found, utilise default missing error texture.
         }
         std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> texture(
-        IMG_LoadTexture(mRenderer, absolutePath.c_str()), 
+        rawTex, 
         SDL_DestroyTexture
         ); // Declare with SDL_DestroyTexture as a custom destructor.
         auto cachedTexture = mTextures.emplace(filePath, std::move(texture)); // Transfer ownership of the pointer into the map
