@@ -30,8 +30,8 @@ void SpriteRenderer::render(const entt::registry& registry, SDL_Renderer* render
         SDL_FPoint screen = Coordinate::WorldToScreen(transform.position.x, transform.position.y, camera, worldSettings);
         // We get the width/height from the actual frame source in the spritesheet
         const SDL_FRect& frameRect = sprite.src->getFrame(sprite.frame);
-        float visualWidth = frameRect.w;
-        float visualHeight = frameRect.h;
+        float visualWidth = frameRect.w * transform.size.x;
+        float visualHeight = frameRect.h * transform.size.y;
 
         // 4. DESTINATION RECT
         // screenX/screenY is the "anchor point" (the feet).

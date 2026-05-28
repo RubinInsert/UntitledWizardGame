@@ -38,11 +38,12 @@ void TileMap::render(SDL_Renderer& renderer, const Camera& camera, const WorldSe
                 const Sprite& sprite = it->second;
                 SpriteSheet* sheet = sprite.src;
                 if (!sheet) continue;
+                SDL_FRect tileDimensions = sheet->getFrame(sprite.frame);
                 // 1. Convert Grid coordinates to screen Screen (No Y-flip needed, y is already Grid Space)
                 SDL_FPoint screen = Coordinate::GridToScreen(x, y, camera, worldSettings);
                 // Scale width/height according to camera zoom;
-                float finalW = worldSettings.tileWidth * camera.zoom;
-                float finalH = worldSettings.tileHeight * camera.zoom;
+                float finalW = tileDimensions.w * camera.zoom;
+                float finalH = tileDimensions.h * camera.zoom;
 
                 // 4. DRAW CENTERING
                 SDL_FRect destRect {

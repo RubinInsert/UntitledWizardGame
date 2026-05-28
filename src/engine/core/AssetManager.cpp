@@ -12,7 +12,7 @@ AssetManager::AssetManager(SDL_Renderer* renderer):
 AssetManager::~AssetManager() {}
 SDL_Texture* AssetManager::getTexture(const std::string& filePath) const {
     auto iterator = mTextures.find(filePath);
-
+    SDL_Log("Retrieving:", filePath);
     if(iterator != mTextures.end()) {
         SDL_Log("Image retrieved from cache!");
         
@@ -20,6 +20,7 @@ SDL_Texture* AssetManager::getTexture(const std::string& filePath) const {
     } else {
         std::string absolutePath = std::string(SDL_GetBasePath()) + filePath; // SDL_GetBasePath() is cached internally in SDL3. No Freeing is required.
         SDL_Texture* rawTex = IMG_LoadTexture(mRenderer, absolutePath.c_str());
+        SDL_SetTextureScaleMode(rawTex, SDL_SCALEMODE_NEAREST);
         if(!rawTex) { // If a texture was not found:
             // Return a pre-loaded fallback texture instead of crashing
             if(filePath == "assets/textures/missing_error.png") throw std::runtime_error(filePath + "is missing! No Fallback."); // Prevent infinite recurrsion.

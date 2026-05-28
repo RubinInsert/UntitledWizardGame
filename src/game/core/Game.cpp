@@ -19,13 +19,14 @@ Game::Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& 
     , time(time)
     , worldSettings(worldSettings)
 {
-    createScene();
     camera.position = {0.f, 0.f};
     camera.zoom = 1.f;
     camera.viewportWidth = viewportWidth;
     camera.viewportHeight = viewportHeight;
+    createScene();
 }
 void Game::createScene() {
+            camera.zoom = 1.5f;
             std::string imagePath {"assets/snail.png"};
             std::string playerAssetPath {"assets/magician.png"};
             player = registry.create();

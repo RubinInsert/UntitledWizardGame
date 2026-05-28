@@ -189,7 +189,7 @@ std::vector<entt::entity> MapLoader::loadObjects(json mapJSON, const std::unorde
             // Tiled anchors tile objects from the bottom-left, adjust Y to match top-left engines
             registry.emplace<Transform>(loadedObject, Transform{
                 objectPos,
-                SDL_FPoint{ width, height }, // size
+                SDL_FPoint{ 1, 1 }, // default to 1 x 1 size
                 objectPos  // previousPosition (initially identical)
         });
 
