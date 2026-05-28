@@ -72,16 +72,11 @@ static GridPoint WorldToGrid(float wx, float wy) {
     }
 
         // Converts raw pixel values from a Tiled Isometric Map into your top-down World Coordinates (+Y Up)
-    static SDL_FPoint TiledIsoObjectToWorld(float tiledX, float tiledY, float objHeight, const WorldSettings& settings) {
-        // 1. Tiled scales coordinate metrics directly against map tileHeight inside isometric layouts.
-        // Convert Tiled pixels to pure fractional tile coordinates.
-        float tileX = tiledX / settings.tileHeight;
-        float tileY = tiledY / settings.tileHeight;
-
-        // 2. Map Tiled's (+Y Down) grid directly into your engine's Cartesian (+Y Up) World space
+    static SDL_FPoint TiledIsoObjectToWorld(float tiledX, float tiledY, float objHeight) {
+        float tileX = tiledX / WorldSettings::tileHeight;
+        float tileY = tiledY / WorldSettings::tileHeight;
         float wx = tileX;
         float wy = -tileY;
-
         return { wx, wy };
     }
 };

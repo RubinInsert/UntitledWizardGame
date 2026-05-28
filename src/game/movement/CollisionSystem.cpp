@@ -36,7 +36,7 @@ void CollisionSystem::update(entt::registry& registry, const TileMap& tileMap) {
         // Check all tiles the sprite overlaps (tileMap expects grid coords y-down)
         // Only tiles with ID > 0 are solid; ID 0 is empty
         bool collision = false;
-        TileLayer* collisionLayer = tileMap.getCollisionLayer();
+        const TileLayer* collisionLayer = tileMap.getCollisionLayer();
         if(collisionLayer == nullptr) return;
         for (int x = minTileX; x <= maxTileX; ++x) {
             for (int y = minTileY; y <= maxTileY; ++y) {

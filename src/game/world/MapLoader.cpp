@@ -3,9 +3,12 @@
 #include <filesystem>
 #include "game/world/Map.hpp"
 #include "engine/ecs/components/Sprite.hpp"
+#include "engine/ecs/components/Transform.hpp"
 #include "engine/core/AssetManager.hpp"
 #include "game/world/TileMap.hpp"
 #include "game/world/MapLoader.hpp"
+#include "engine/render/Coordinate.hpp"
+#include "engine/render/DebugDrawer.hpp"
 using json = nlohmann::json;
 namespace fs = std::filesystem;
 // Flags attached to the 32-bit global tile ID. Must be removed before checking tile type.
@@ -14,7 +17,7 @@ const unsigned FLIPPED_HORIZONTALLY_FLAG  = 0x80000000;
 const unsigned FLIPPED_VERTICALLY_FLAG    = 0x40000000;
 const unsigned FLIPPED_DIAGONALLY_FLAG    = 0x20000000;
 const unsigned ROTATED_HEXAGONAL_120_FLAG = 0x10000000;
-Map MapLoader::Load(std::string mapFilePath, AssetManager& assetManager) {
+Map MapLoader::Load(std::string mapFilePath, AssetManager& assetManager, entt::registry& registry) {
     Map loadedMap;
     // Parse Map files
     fs::path mapPath = fs::path(mapFilePath); // Gets "assets/worldData/maps/map_file_name.json"
@@ -45,10 +48,11 @@ Map MapLoader::Load(std::string mapFilePath, AssetManager& assetManager) {
     std::unordered_map<int, Sprite> tileSets = LoadTileSets(mapJson, mapDir, assetManager);
     // Load TileMaps
     loadedMap.tileMap = LoadTileMap(mapJson);
+    
+    std::vector<entt::entity> loadedObjects = loadObjects(mapJson, tileSets, registry);
 
     loadedMap.tileMap.setGidAssetMap(std::move(tileSets));
 
-    //std::vector<entt::entity> loadedObjects = ObjectLoader::loadObjects();
     return loadedMap;
 }
 
@@ -159,4 +163,39 @@ TileMap MapLoader::LoadTileMap(json mapJSON) {
     }
 
     return tileMap;
+}
+
+std::vector<entt::entity> MapLoader::loadObjects(json mapJSON, const std::unordered_map<int, Sprite>& tileSets, entt::registry& registry) {
+    std::vector<entt::entity> loadedObjects;
+    if (!mapJSON.contains("layers")) return loadedObjects;
+    for (const auto& layer : mapJSON["layers"]) {
+        if (layer.value("type", "") != "objectgroup" || !layer.contains("objects")) continue;
+        for (const auto& obj : layer["objects"]) {
+            if (!obj.contains("gid")) continue; // We only care about visual objects
+            int rawGid = obj["gid"].get<int>();
+            int cleanGid = rawGid & ~(FLIPPED_HORIZONTALLY_FLAG | FLIPPED_VERTICALLY_FLAG | 
+                                      FLIPPED_DIAGONALLY_FLAG | ROTATED_HEXAGONAL_120_FLAG);
+            auto it = tileSets.find(cleanGid);
+            if (it == tileSets.end()) continue; // Skip if asset wasn't found
+            const Sprite& objectSprite = it->second;
+            entt::entity loadedObject = registry.create();
+            registry.emplace<Sprite>(loadedObject, objectSprite);
+            // Extract positions from your JSON data
+            float x = obj["x"].get<float>();
+            float y = obj["y"].get<float>();
+            float height = obj["height"].get<float>();
+            float width = obj["width"].get<float>();
+            SDL_FPoint objectPos = Coordinate::TiledIsoObjectToWorld(x, y, height);
+            // Tiled anchors tile objects from the bottom-left, adjust Y to match top-left engines
+            registry.emplace<Transform>(loadedObject, Transform{
+                objectPos,
+                SDL_FPoint{ width, height }, // size
+                objectPos  // previousPosition (initially identical)
+        });
+
+            // Track the entity in your list
+            loadedObjects.push_back(loadedObject);
+        }
+    }
+    return loadedObjects;
 }

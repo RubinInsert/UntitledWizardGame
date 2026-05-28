@@ -11,6 +11,7 @@
 #include "engine/ecs/components/AnimationSequence.hpp"
 #include "game/world/MapLoader.hpp"
 #include "game/player/PlayerAnims.hpp"
+#include "engine/render/DebugDrawer.hpp"
 #include <vector>
 Game::Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& time, WorldSettings& worldSettings, float viewportWidth, float viewportHeight)
     : assetManager(assetManager)
@@ -67,7 +68,7 @@ void Game::createScene() {
 
             // TILE MAP LOADING TESTING
             // Load the map from Tiled JSON
-            worldMap = MapLoader::Load("assets/worldData/maps/map01.json", assetManager);
+            worldMap = MapLoader::Load("assets/worldData/maps/map01.json", assetManager, registry);
             //Game::collisionLayer = loadedCollisionLayer;
 }
 
