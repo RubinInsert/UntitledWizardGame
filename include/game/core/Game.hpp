@@ -12,7 +12,7 @@
 #include "game/player/PlayerController.hpp"
 #include "game/movement/PhysicsSystem.hpp"
 #include "game/movement/CollisionSystem.hpp"
-#include "game/world/TileMap.hpp"
+#include "game/world/Map.hpp"
 class Game {
     public:
         Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& time, WorldSettings& worldSettings, float viewportWidth, float viewportHeight);
@@ -40,8 +40,7 @@ class Game {
     InputManager& inputManager;
     TimeManager& time;
     WorldSettings& worldSettings;
-    std::vector<TileMap> tileMaps;
-    TileMap collisionLayer;
+    Map worldMap;
 
 };
 

@@ -47,8 +47,9 @@ add_executable(${PROJECT_NAME}
  src/game/player/PlayerController.cpp
  src/game/movement/PhysicsSystem.cpp
  src/game/world/TileMap.cpp
- src/game/world/TileMapLoader.cpp
  src/game/movement/CollisionSystem.cpp
+ src/game/world/MapLoader.cpp
+ src/game/world/TileSet.cpp
  )
 
 # 6. Link SDL3

@@ -2,6 +2,9 @@
 #define TILEMAPLOADER_H
 #include <string>
 #include "game/world/TileMap.hpp"
+#include "game/world/ObjectLoader.hpp"
+#include <entt/entt.hpp>
+#include "engine/core/AssetManager.hpp"
 struct LoadedTileSet {
     int columns;
     int rows;
@@ -25,12 +28,13 @@ struct LoadedMap {
     int tileHeight;
     int collisionLayerIndex;
     std::vector<LoadedTileLayer> layers;
+    std::vector<entt::entity> objects;
 };
 
 
 class TileMapLoader {
 public:
-    static LoadedMap loadTileMap(const std::string& mapFilePath);
+    static LoadedMap loadTileMap(const json& mapJSON, entt::registry& registry, AssetManager& assetManager, Camera& camera, WorldSettings worldSettings);
 };
 
 #endif

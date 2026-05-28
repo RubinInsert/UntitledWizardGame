@@ -9,7 +9,7 @@
 #include "game/core/CameraSystem.hpp"
 #include "engine/ecs/components/Animation.hpp"
 #include "engine/ecs/components/AnimationSequence.hpp"
-#include "game/world/TileMapLoader.hpp"
+#include "game/world/MapLoader.hpp"
 #include "game/player/PlayerAnims.hpp"
 #include <vector>
 Game::Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& time, WorldSettings& worldSettings, float viewportWidth, float viewportHeight)
@@ -67,39 +67,15 @@ void Game::createScene() {
 
             // TILE MAP LOADING TESTING
             // Load the map from Tiled JSON
-            LoadedMap loadedMap = TileMapLoader::loadTileMap("assets/worldData/maps/map01.json");
-            // For each tile layer, create a TileMap and get it's spritesheet
-            //std::vector<TileMap> tileMaps; // Defined in Game.hpp now
-            for(const auto& loadedLayer : loadedMap.layers) {
-                // Get or create sprite sheet for this layer's tileset
-                SpriteSheet* spriteSheet = assetManager.getSpriteSheet(
-                    loadedLayer.tilesetImagePath,
-                    loadedMap.tileWidth,
-                    loadedMap.tileHeight,
-                    loadedLayer.tileSet.columns,
-                    loadedLayer.tileSet.rows,
-                    loadedLayer.tileSet.margin,
-                    loadedLayer.tileSet.margin,
-                    loadedLayer.tileSet.spacing,
-                    loadedLayer.tileSet.spacing
-                );
-                // Create Tile Map
-                TileMap tileMap(loadedMap.width, loadedMap.height, spriteSheet);
-                // Set the tile data
-                tileMap.setTileData(loadedLayer.tileIds);
-                
-                tileMaps.push_back(tileMap);
-            }
-            TileMap loadedCollisionLayer(loadedMap.width, loadedMap.height, spriteSheet);
-            loadedCollisionLayer.setTileData(loadedMap.layers[loadedMap.collisionLayerIndex].tileIds);
-            Game::collisionLayer = loadedCollisionLayer;
+            worldMap = MapLoader::Load("assets/worldData/maps/map01.json", assetManager);
+            //Game::collisionLayer = loadedCollisionLayer;
 }
 
 void Game::update () {
     animatorSystem.update(registry, time.getDeltaTime());
     playerController.update(registry, player, inputManager, time.getDeltaTime());
     physics.update(registry, time.getDeltaTime());
-    collisions.update(registry, collisionLayer);
+    collisions.update(registry, worldMap.tileMap);
     // If left mouse button is down, allow CameraSystem to handle dragging
     if (inputManager.isMouseButtonDown(SDL_BUTTON_LEFT)) {
         cameraSystem.update(camera, inputManager);
@@ -119,10 +95,7 @@ void Game::shutdown() {
 
 }
 void Game::render(SDL_Renderer& renderer) {
-    for (TileMap tileMap : tileMaps) {
-        tileMap.render(renderer, camera, worldSettings);
-    }
-    
+    worldMap.tileMap.render(renderer, camera, worldSettings);
 }
 entt::registry& Game::getRegistry() {
     return registry;

@@ -36,9 +36,11 @@ void CollisionSystem::update(entt::registry& registry, const TileMap& tileMap) {
         // Check all tiles the sprite overlaps (tileMap expects grid coords y-down)
         // Only tiles with ID > 0 are solid; ID 0 is empty
         bool collision = false;
+        TileLayer* collisionLayer = tileMap.getCollisionLayer();
+        if(collisionLayer == nullptr) return;
         for (int x = minTileX; x <= maxTileX; ++x) {
             for (int y = minTileY; y <= maxTileY; ++y) {
-                if (tileMap.getTile(x, y) != -1) {
+                if (tileMap.getTile(x, y, *collisionLayer) != -1) {
                     // Use the negative Y for the DebugDrawer since it flips it back to positive
                     DebugDrawer::AddBox(static_cast<float>(x) + 0.5f, -(static_cast<float>(y) + 0.5f), 1.f, 1.f);
                     collision = true;
