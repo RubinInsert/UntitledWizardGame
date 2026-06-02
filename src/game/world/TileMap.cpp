@@ -46,9 +46,9 @@ void TileMap::render(SDL_Renderer& renderer, const Camera& camera, const WorldSe
                 float finalH = tileDimensions.h * camera.zoom;
 
                 // 4. DRAW CENTERING
-                SDL_FRect destRect {
+                SDL_FRect destRect { // Bottom-Center Anchor point
                     screen.x - (finalW * 0.5f),
-                    screen.y - (finalH * 0.5f),
+                    screen.y - (finalH) + (0.5f * WorldSettings::tileHeight * camera.zoom), // TileHeight is in map units, so it must be multiplied by zoom
                     finalW,
                     finalH
                 };
