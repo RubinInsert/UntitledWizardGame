@@ -5,8 +5,8 @@
 #include "engine/render/DebugDrawer.hpp"
 #include "game/core/Game.hpp"
 #include <SDL3/SDL.h>
-constexpr int kScreenWidth{ 640 };
-constexpr int kScreenHeight{ 480 };
+constexpr int kScreenWidth{ 1280 };
+constexpr int kScreenHeight{ 960 };
 Engine::Engine(int screenWidth, int screenHeight): windowManager{}, assetManager{nullptr}, inputManager{}, spriteRenderer{}, screenWidth(screenWidth), screenHeight(screenHeight) {}
 bool Engine::Init() {
     bool success {true};

@@ -26,7 +26,7 @@ Game::Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& 
     createScene();
 }
 void Game::createScene() {
-            camera.zoom = 1.5f;
+            camera.zoom = 2.5f;
             std::string imagePath {"assets/snail.png"};
             std::string playerAssetPath {"assets/magician.png"};
             player = registry.create();

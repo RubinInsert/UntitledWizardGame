@@ -12,8 +12,8 @@ SDL_Window* gWindow{ nullptr };
 SDL_Renderer* gRenderer{ nullptr };
 
 //Screen dimension constants
-constexpr int kScreenWidth{ 640 };
-constexpr int kScreenHeight{ 480 };
+constexpr int kScreenWidth{ 1280 };
+constexpr int kScreenHeight{ 940 };
 void close () {
 
     // Destroy Renderer
