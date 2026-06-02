@@ -8,5 +8,6 @@ class SpriteSheet;  // Forward declaration
 struct Sprite {
     SpriteSheet* src;
     int frame;
+    float depthOffset = 0;
 };
 #endif

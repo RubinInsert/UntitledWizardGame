@@ -72,7 +72,7 @@ static GridPoint WorldToGrid(float wx, float wy) {
     }
 
         // Converts raw pixel values from a Tiled Isometric Map into your top-down World Coordinates (+Y Up)
-    static SDL_FPoint TiledIsoObjectToWorld(float tiledX, float tiledY, float objHeight) {
+    static SDL_FPoint TiledIsoObjectToWorld(float tiledX, float tiledY) {
         float tileX = tiledX / WorldSettings::tileHeight;
         float tileY = tiledY / WorldSettings::tileHeight;
         float wx = tileX;

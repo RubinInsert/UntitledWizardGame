@@ -12,9 +12,10 @@ void SpriteRenderer::render(const entt::registry& registry, SDL_Renderer* render
     std::vector<std::pair<entt::entity, float>> sortedEntities;
     for (auto object : view) {
         auto& transform = view.get<Transform>(object);
+        auto& sprite = view.get<Sprite>(object);
         // For depth sorting we convert to grid Y (down-positive) used by iso math.
         SDL_FPoint iso = Coordinate::WorldToIso(transform.position.x, transform.position.y, worldSettings);
-        float depthKey = iso.y; // Get bottom of sprite in Isometric space
+        float depthKey = iso.y + sprite.depthOffset; // Get bottom of sprite in Isometric space. DepthOffset is already in Screen space.
         sortedEntities.emplace_back(object, depthKey);
     }
     // Sort by Y position (ascending: lower Y renders first, higher Y on top)

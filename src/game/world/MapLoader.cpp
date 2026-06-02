@@ -113,8 +113,19 @@ std::unordered_map<int, Sprite> MapLoader::LoadTileSets(json mapJSON, fs::path m
                     int globalId = firstGid + localId;
                     int imageHeight = object["imageheight"];
                     int imageWidth = object["imagewidth"];
+                    // Check if image has any bounds:
+                    bool containsPolygonInfo = object.contains("polygon");
+                    float depthKeyOffset = 0.f;
+                    if(object.contains("objectgroup") && object["objectgroup"].contains("objects") && object["objectgroup"]["objects"][0].contains("polygon")) {
+                        for (const auto& point : object["objectgroup"]["objects"][0]["polygon"]) {
+                            
+                            depthKeyOffset += point.at("y").get<float>(); 
+                        }
+                        depthKeyOffset /= object["objectgroup"]["objects"][0]["polygon"].size();
+                        SDL_Log("Test");
+                    }
                     SpriteSheet* spriteSheet = assetManager.getSpriteSheet(individualPath.string(), imageWidth, imageHeight, 1, 1, 0, 0, 0, 0);
-                    Sprite tileSprite = Sprite{spriteSheet, 0}; // In collection of images, there will only ever be one sprite per spritesheet so we hardcode 0.
+                    Sprite tileSprite = Sprite{spriteSheet, 0, depthKeyOffset}; // In collection of images, there will only ever be one sprite per spritesheet so we hardcode 0.
                     // Store it directly in our flat asset lookup
                     idToTileSprite[globalId] = tileSprite;
                 }
@@ -185,7 +196,7 @@ std::vector<entt::entity> MapLoader::loadObjects(json mapJSON, const std::unorde
             float y = obj["y"].get<float>();
             float height = obj["height"].get<float>();
             float width = obj["width"].get<float>();
-            SDL_FPoint objectPos = Coordinate::TiledIsoObjectToWorld(x, y, height);
+            SDL_FPoint objectPos = Coordinate::TiledIsoObjectToWorld(x, y);
             // Tiled anchors tile objects from the bottom-left, adjust Y to match top-left engines
             registry.emplace<Transform>(loadedObject, Transform{
                 objectPos,
