@@ -23,33 +23,46 @@ bool Engine::Init() {
         }
         // Link Newly created renderer to Asset manager
         assetManager.setRenderer(windowManager.getRenderer());
+
+        SDL_GPUDevice* gpuDevice = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_DXIL, true, nullptr);
+        if (!gpuDevice) {
+            SDL_Log("Failed to create GPU device: %s", SDL_GetError());
+            return false;
+        }
+        if (!SDL_ClaimWindowForGPUDevice(gpuDevice, windowManager.getWindow())) {
+            SDL_Log("Failed to claim window: %s", SDL_GetError());
+            return false;
+        }
+        renderSystem.setGPUDevice(gpuDevice);
+        renderSystem.setTargetWindow(windowManager.getWindow());
     }
     return success;
 }
 int Engine::Run(Game& game) {
             while (inputManager.shouldQuit() == false) {
                 // Clear any previously drawn debug boxes
-                DebugDrawer::Clear();
+               // DebugDrawer::Clear();
                 // Update elapsed and delta times.
                 timeManager.update();
 
                 // Register inputs
                 inputManager.update();
 
-                game.update();
+               // game.update();
                 // Fill the surface white
-                SDL_SetRenderDrawColor(windowManager.getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
-                SDL_RenderClear(windowManager.getRenderer());
+                // SDL_SetRenderDrawColor(windowManager.getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
+                // SDL_RenderClear(windowManager.getRenderer());
                 
+                renderSystem.render();
                 // Render additional game renders
-                game.render(*windowManager.getRenderer());
+                //game.render(*windowManager.getRenderer());
                 // Render sprites through the sprite renderer
-                spriteRenderer.render(game.getRegistry(), windowManager.getRenderer(), game.getCamera(), worldSettings);
+                //spriteRenderer.render(game.getRegistry(), windowManager.getRenderer(), game.getCamera(), worldSettings);
 
                 // Debug draws
-                DebugDrawer::DrawIsometric(windowManager.getRenderer(), game.getCamera(), worldSettings);
+                //DebugDrawer::DrawIsometric(windowManager.getRenderer(), game.getCamera(), worldSettings);
                 // Update the screen
-                SDL_RenderPresent(windowManager.getRenderer());
+                //SDL_RenderPresent(windowManager.getRenderer());
             }
     return 0;
 }

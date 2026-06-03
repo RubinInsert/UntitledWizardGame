@@ -6,7 +6,13 @@ WindowManager::~WindowManager() {
 }
 bool WindowManager::createWindow(std::string windowTitle, int windowWidth, int windowHeight) {
         bool success {true};
-        if( SDL_CreateWindowAndRenderer(windowTitle.c_str(), windowWidth, windowHeight, 0, &gameWindow, &gameRenderer) == false ) {
+        gameWindow = SDL_CreateWindow(
+        windowTitle.c_str(), 
+        windowWidth, 
+        windowHeight, 
+        SDL_WINDOW_HIGH_PIXEL_DENSITY
+    );
+        if( gameWindow == nullptr) {
             SDL_Log( "Window could not be created! SDL error: %s\n", SDL_GetError() );
             success = false;
         }

@@ -7,6 +7,7 @@
 #include "engine/core/TimeManager.hpp"
 #include "engine/core/WorldSettings.hpp"
 #include <entt/entt.hpp>
+#include "engine/render/RenderSystem.hpp"
 class Game;
 class Engine {
     public:
@@ -25,6 +26,7 @@ class Engine {
         AssetManager assetManager;
         InputManager inputManager;
         TimeManager timeManager;
+        RenderSystem renderSystem;
         SpriteRenderer spriteRenderer;
         WorldSettings worldSettings;
         int screenWidth;

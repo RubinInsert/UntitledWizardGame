@@ -3,14 +3,15 @@
 #include <SDL3_image/SDL_image.h>
 #include <string>
 #include <stdexcept>
-AssetManager::AssetManager(SDL_Renderer* renderer):
-    mRenderer{renderer}
+#include <cstring>
+AssetManager::AssetManager(SDL_GPUDevice* device):
+    device{device}
 
 {
     
 }
 AssetManager::~AssetManager() {}
-SDL_Texture* AssetManager::getTexture(const std::string& filePath) const {
+SDL_GPUTexture* AssetManager::getTexture(const std::string& filePath) {
     auto iterator = mTextures.find(filePath);
     SDL_Log("Retrieving:", filePath);
     if(iterator != mTextures.end()) {
@@ -19,20 +20,67 @@ SDL_Texture* AssetManager::getTexture(const std::string& filePath) const {
         return iterator->second.get(); // If texture already cached; return raw pointer for observation
     } else {
         std::string absolutePath = std::string(SDL_GetBasePath()) + filePath; // SDL_GetBasePath() is cached internally in SDL3. No Freeing is required.
-        SDL_Texture* rawTex = IMG_LoadTexture(mRenderer, absolutePath.c_str());
-        SDL_SetTextureScaleMode(rawTex, SDL_SCALEMODE_NEAREST);
-        if(!rawTex) { // If a texture was not found:
+        SDL_Surface* surface = IMG_Load(absolutePath.c_str());
+        if(!surface) { // If a texture was not found:
             // Return a pre-loaded fallback texture instead of crashing
             if(filePath == "assets/textures/missing_error.png") throw std::runtime_error(filePath + "is missing! No Fallback."); // Prevent infinite recurrsion.
             return getTexture("assets/textures/missing_error.png"); // If a texture was not found, utilise default missing error texture.
         }
-        std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> texture(
-        rawTex, 
-        SDL_DestroyTexture
-        ); // Declare with SDL_DestroyTexture as a custom destructor.
+        // 3. Ensure surface is in standard 32-bit RGBA format
+        SDL_Surface* formattedSurface = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
+        SDL_DestroySurface(surface); // Don't need original anymore
+        if (!formattedSurface) {
+            throw std::runtime_error("Failed to convert surface format: " + std::string(SDL_GetError()));
+        }
+        SDL_GPUTextureCreateInfo texInfo = {};
+        texInfo.type = SDL_GPU_TEXTURETYPE_2D;
+        texInfo.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+        texInfo.width = static_cast<Uint32>(formattedSurface->w);
+        texInfo.height = static_cast<Uint32>(formattedSurface->h);
+        texInfo.layer_count_or_depth = 1;
+        texInfo.num_levels = 1;
+        texInfo.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER; // Tells SDL we plan to sample this in a shader
+        SDL_GPUTexture* rawTex = SDL_CreateGPUTexture(device, &texInfo);
+
+        // Create a temporary Transfer (Staging) Buffer to stream bytes to VRAM
+        Uint32 textureSize = formattedSurface->w * formattedSurface->h * 4;
+        SDL_GPUTransferBufferCreateInfo transferInfo = {};
+        transferInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+        transferInfo.size = textureSize;
+
+        SDL_GPUTransferBuffer* stagingBuffer = SDL_CreateGPUTransferBuffer(device, &transferInfo);
+        // Map staging buffer memory, copy pixels from RAM, and unmap
+        void* dataPtr = SDL_MapGPUTransferBuffer(device, stagingBuffer, false);
+        std::memcpy(dataPtr, formattedSurface->pixels, textureSize);
+        SDL_UnmapGPUTransferBuffer(device, stagingBuffer);
+        SDL_DestroySurface(formattedSurface); // Surface data safely in staging buffer now
+
+        SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(device);
+    
+        SDL_GPUTextureTransferInfo srcInfo = {};
+        srcInfo.transfer_buffer = stagingBuffer;
+        srcInfo.offset = 0;
+
+        SDL_GPUTextureRegion dstRegion = {};
+        dstRegion.texture = rawTex;
+        dstRegion.w = texInfo.width;
+        dstRegion.h = texInfo.height;
+        dstRegion.d = 1;
+
+        // Execute copy and immediately submit command
+        SDL_GPUCopyPass* copyPass = SDL_BeginGPUCopyPass(cmd);
+        SDL_UploadToGPUTexture(copyPass, &srcInfo, &dstRegion, false);
+        SDL_EndGPUCopyPass(copyPass);
+        SDL_SubmitGPUCommandBuffer(cmd);
+
+        // Safely release staging resources (the GPU safely references this until complete)
+        SDL_ReleaseGPUTransferBuffer(device, stagingBuffer);
+        std::unique_ptr<SDL_GPUTexture, GPUTextureDeleter> texture(rawTex, GPUTextureDeleter{ device }); // Declare with SDL_ReleaseGPUTexture as a custom destructor.
         auto cachedTexture = mTextures.emplace(filePath, std::move(texture)); // Transfer ownership of the pointer into the map
         return cachedTexture.first->second.get(); // Return raw pointer for observation
     }
+    SDL_GPUTexture* tex;
+    return tex;
 }
 SpriteSheet* AssetManager::getSpriteSheet(const std::string& filePath, 
                                           float frameWidth, float frameHeight,
@@ -49,6 +97,6 @@ SpriteSheet* AssetManager::getSpriteSheet(const std::string& filePath,
     return cachedSpriteSheet.first->second.get(); // Return observable raw pointer
 }
 
-void AssetManager::setRenderer(SDL_Renderer* renderer) {
-    mRenderer = renderer;
+void AssetManager::setGPUDevice(SDL_GPUDevice* device) {
+     this->device = device;
 }
