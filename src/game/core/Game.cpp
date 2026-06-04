@@ -14,16 +14,13 @@
 #include "engine/render/DebugDrawer.hpp"
 #include "engine/render/Texture.hpp"
 #include <vector>
-Game::Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& time, WorldSettings& worldSettings, float viewportWidth, float viewportHeight)
-    : assetManager(assetManager)
-    , inputManager(inputManager)
-    , time(time)
-    , worldSettings(worldSettings)
+Game::Game(Engine& engine)
+    : engine(engine)
 {
     camera.position = {0.f, 0.f};
     camera.zoom = 1.f;
-    camera.viewportWidth = viewportWidth;
-    camera.viewportHeight = viewportHeight;
+    camera.viewportWidth = engine.getScreenWidth();
+    camera.viewportHeight = engine.getScreenHeight();
     createScene();
 }
 void Game::createScene() {
@@ -32,14 +29,14 @@ void Game::createScene() {
             std::string playerAssetPath {"assets/magician.png"};
             player = registry.create();
             // Load texture from asset manager
-            Texture* texture = assetManager.getTexture(playerAssetPath);
+            Texture* texture = engine.getAssetManager().getTexture(playerAssetPath);
             float width = texture->width, height = texture->height;
             
             // Choose frame from sprite
             float frameWidth = width / 8.f;
             float frameHeight = height / 8.f;
             // Create sprite component with loaded texture
-            SpriteSheet* spriteSheet = assetManager.getSpriteSheet("assets/male_unarmored.png", 128, 128, 8, 8, 64, 64, 128, 128);
+            SpriteSheet* spriteSheet = engine.getAssetManager().getSpriteSheet("assets/male_unarmored.png", 128, 128, 8, 8, 64, 64, 128, 128);
             registry.emplace<Sprite>(player, Sprite{spriteSheet, 16});  // frame 0
             
             // Create transform component
@@ -69,27 +66,27 @@ void Game::createScene() {
 
             // TILE MAP LOADING TESTING
             // Load the map from Tiled JSON
-            worldMap = MapLoader::Load("assets/worldData/maps/map01.json", assetManager, registry);
+            worldMap = MapLoader::Load("assets/worldData/maps/map01.json", engine.getAssetManager(), registry);
             //Game::collisionLayer = loadedCollisionLayer;
 }
 
 void Game::update () {
-    animatorSystem.update(registry, time.getDeltaTime());
-    playerController.update(registry, player, inputManager, time.getDeltaTime());
-    physics.update(registry, time.getDeltaTime());
+    animatorSystem.update(registry, engine.getTimeManager().getDeltaTime());
+    playerController.update(registry, player, engine.getInputManager(), engine.getTimeManager().getDeltaTime());
+    physics.update(registry, engine.getTimeManager().getDeltaTime());
     collisions.update(registry, worldMap.tileMap);
     // If left mouse button is down, allow CameraSystem to handle dragging
-    if (inputManager.isMouseButtonDown(SDL_BUTTON_LEFT)) {
-        cameraSystem.update(camera, inputManager);
+    if (engine.getInputManager().isMouseButtonDown(SDL_BUTTON_LEFT)) {
+        cameraSystem.update(camera, engine.getInputManager());
         return;
     }
     // Otherwise, follow the player transform if available
     if (player != entt::null && registry.valid(player) && registry.all_of<Transform>(player)) {
         const Transform& playerTransform = registry.get<Transform>(player);
-        cameraSystem.followPlayer(camera, playerTransform, time, worldSettings);
+        cameraSystem.followPlayer(camera, playerTransform, engine.getTimeManager(), engine.getWorldSettings());
     } else {
         // fallback test target
-        cameraSystem.followPlayer(camera, Transform{SDL_FPoint{0.f, 0.f}, SDL_FPoint{5.f, 5.f}}, time, worldSettings);
+        cameraSystem.followPlayer(camera, Transform{SDL_FPoint{0.f, 0.f}, SDL_FPoint{5.f, 5.f}}, engine.getTimeManager(), engine.getWorldSettings());
     }
 }
 
@@ -97,7 +94,7 @@ void Game::shutdown() {
 
 }
 void Game::render(SDL_Renderer& renderer) {
-    worldMap.tileMap.render(renderer, camera, worldSettings);
+    worldMap.tileMap.render(renderer, camera, engine.getWorldSettings());
 }
 entt::registry& Game::getRegistry() {
     return registry;
