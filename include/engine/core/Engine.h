@@ -18,6 +18,7 @@ class Engine {
         AssetManager& getAssetManager();
         InputManager& getInputManager();
         TimeManager& getTimeManager();
+        RenderSystem& getRenderSystem();
         WorldSettings& getWorldSettings();
         int getScreenWidth();
         int getScreenHeight();

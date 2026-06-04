@@ -39,10 +39,7 @@ bool Engine::Init() {
     return success;
 }
 int Engine::Run(Game& game) {
-            int frameCount = 0;
             while (inputManager.shouldQuit() == false) {
-                SDL_Log("Frame %d - shouldQuit = %d", frameCount++, inputManager.shouldQuit());
-                frameCount++;
                 // Clear any previously drawn debug boxes
                // DebugDrawer::Clear();
                 // Update elapsed and delta times.
@@ -56,11 +53,11 @@ int Engine::Run(Game& game) {
                 // SDL_SetRenderDrawColor(windowManager.getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
                 // SDL_RenderClear(windowManager.getRenderer());
                 
+                spriteRenderer.render(game.getRegistry(), renderSystem, game.getCamera(), worldSettings);
+                game.render(renderSystem);
                 renderSystem.render();
                 // Render additional game renders
-                //game.render(*windowManager.getRenderer());
                 // Render sprites through the sprite renderer
-                //spriteRenderer.render(game.getRegistry(), windowManager.getRenderer(), game.getCamera(), worldSettings);
 
                 // Debug draws
                 //DebugDrawer::DrawIsometric(windowManager.getRenderer(), game.getCamera(), worldSettings);
@@ -78,6 +75,9 @@ InputManager& Engine::getInputManager() {
 }
 TimeManager& Engine::getTimeManager() {
     return timeManager;
+}
+RenderSystem& Engine::getRenderSystem() {
+    return renderSystem;
 }
 WorldSettings& Engine::getWorldSettings() {
     return worldSettings;

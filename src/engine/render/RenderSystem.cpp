@@ -42,7 +42,23 @@ void RenderSystem::render() {
 
     SDL_SubmitGPUCommandBuffer(cmd);
 }
+void RenderSystem::draw(const RenderSprite& sprite) {
+    spriteQueue.push(sprite);
+}
 
+void RenderSystem::processSpriteQueue(SDL_GPURenderPass* renderPass) {
+    // For now, just log that we're processing
+    SDL_Log("Processing %zu sprites", spriteQueue.size());
+    
+    while (!spriteQueue.empty()) {
+        RenderSprite sprite = spriteQueue.front();
+        spriteQueue.pop();
+        
+        // TODO: Draw the sprite
+        //SDL_Log("Drawing sprite with texture %p at position (%f, %f)", 
+                //sprite.texture, sprite.destRect.x, sprite.destRect.y);
+    }
+}
 void RenderSystem::runHeightMapPass(SDL_GPUCommandBuffer* cmd) {}
 void RenderSystem::runShadowPass(SDL_GPUCommandBuffer* cmd) {}
 void RenderSystem::runAlbedoPass(SDL_GPUCommandBuffer* cmd) {
@@ -58,10 +74,13 @@ void RenderSystem::runAlbedoPass(SDL_GPUCommandBuffer* cmd) {
 
     //     // Begin the pass that draws to the screen
         SDL_GPURenderPass* renderPass = SDL_BeginGPURenderPass(cmd, &colorTargetInfo, 1, nullptr);
+        if(renderPass) {
+            processSpriteQueue(renderPass);
 
+            SDL_EndGPURenderPass(renderPass);
+        }
     //     // Render stuff?
 
         
-        SDL_EndGPURenderPass(renderPass);
     }
 }

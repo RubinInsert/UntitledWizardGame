@@ -16,7 +16,7 @@ class Game {
         bool init ();
         void update();
         void shutdown();
-        void render(SDL_Renderer& renderer);
+        void render(RenderSystem& renderSystem);
         entt::registry& getRegistry();
         const Camera& getCamera() const;
 

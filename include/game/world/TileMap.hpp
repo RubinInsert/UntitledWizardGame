@@ -9,13 +9,14 @@
 #include "engine/render/SpriteSheet.hpp"
 #include "engine/ecs/components/Sprite.hpp"
 #include "game/world/TileLayer.hpp"
+#include "engine/render/RenderSystem.hpp"
 class TileMap {
 public:
     TileMap(int width, int height);
     TileMap();
     ~TileMap();
 
-    void render(SDL_Renderer& renderer, const Camera& camera, const WorldSettings& worldSettings);
+    void render(RenderSystem& renderSystem, const Camera& camera, const WorldSettings& worldSettings);
     
     int getTile(int x, int y, const TileLayer& layer) const;
     void setTile(int x, int y, int tileID);

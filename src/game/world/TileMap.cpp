@@ -23,7 +23,7 @@ void TileMap::setTile(int x, int y, int tileID) {
         tileData[y * width + x] = tileID;
     }
 }
-void TileMap::render(SDL_Renderer& renderer, const Camera& camera, const WorldSettings& worldSettings) {
+void TileMap::render(RenderSystem& renderSystem, const Camera& camera, const WorldSettings& worldSettings) {
     for(TileLayer& layer : layers) {
         if(layer.isVisible == false) return;
         for (int y = 0; y < height; ++y) {
@@ -52,7 +52,14 @@ void TileMap::render(SDL_Renderer& renderer, const Camera& camera, const WorldSe
                     finalW,
                     finalH
                 };
-                // Needs to be replaced with a Render System register call
+                RenderSprite renderSprite{
+                    sprite.src->getTexture(),
+                    sheet->getFrame(sprite.frame),
+                    destRect,
+                    0, // Layer
+                    SDL_Color{255, 255, 255, 255} // Color modification
+                };
+                renderSystem.draw(renderSprite);
                 // SDL_RenderTexture(
                 //     &renderer, 
                 //     sheet->getTexture(), 

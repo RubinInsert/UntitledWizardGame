@@ -93,8 +93,8 @@ void Game::update () {
 void Game::shutdown() {
 
 }
-void Game::render(SDL_Renderer& renderer) {
-    worldMap.tileMap.render(renderer, camera, engine.getWorldSettings());
+void Game::render(RenderSystem& renderSystem) {
+    worldMap.tileMap.render(renderSystem, camera, engine.getWorldSettings());
 }
 entt::registry& Game::getRegistry() {
     return registry;

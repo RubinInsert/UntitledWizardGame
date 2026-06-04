@@ -7,7 +7,7 @@
 SpriteRenderer::SpriteRenderer() {}
 SpriteRenderer::~SpriteRenderer() {}
 
-void SpriteRenderer::render(const entt::registry& registry, SDL_Renderer* renderer, const Camera& camera, const WorldSettings& worldSettings) {
+void SpriteRenderer::render(const entt::registry& registry, RenderSystem& renderSystem, const Camera& camera, const WorldSettings& worldSettings) {
     auto view = registry.view<Transform, Sprite>();
     std::vector<std::pair<entt::entity, float>> sortedEntities;
     for (auto object : view) {
@@ -44,6 +44,14 @@ void SpriteRenderer::render(const entt::registry& registry, SDL_Renderer* render
             visualHeight * camera.zoom
         };
         // To be changed to adopt rendering system:
+        RenderSprite renderSprite{
+            sprite.src->getTexture(),
+            frameRect,
+            destRect,
+            0, // layer
+            SDL_Color{255, 255, 255, 255} // Colour Modification (none)
+        };
+        renderSystem.draw(renderSprite);
         //SDL_RenderTexture(renderer, sprite.src->getTexture(), &frameRect, &destRect);
     }
 }
