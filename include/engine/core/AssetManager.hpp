@@ -6,14 +6,7 @@
 #include <unordered_map>
 #include <memory>
 #include "engine/render/SpriteSheet.hpp"
-struct GPUTextureDeleter {
-    SDL_GPUDevice* device;
-    void operator()(SDL_GPUTexture* tex) const {
-        if (tex && device) {
-            SDL_ReleaseGPUTexture(device, tex);
-        }
-    }
-};
+#include "engine/render/Texture.hpp"
 class AssetManager {
 public:
     AssetManager(SDL_GPUDevice* device);
@@ -24,7 +17,7 @@ public:
     /// @return A non-owning, observe-only pointer to the asset's SDL_Texture
     /// @note Handled safely via internal fallback texture if the target file is missing.
     /// @throws std::runtime_error if both the target and the fallback asset fail to load.
-    SDL_GPUTexture* getTexture(const std::string& filePath);
+    Texture* getTexture(const std::string& filePath);
     /// @brief Retrieves a SpriteSheet from the cache, loading it from the disk if not present in cache.
     /// @param filePath The relative path to the asset (e.g., "assets/textures/hero.png")
     /// @param frameWidth The pixel width of each individual frame in the sprite sheet
@@ -44,7 +37,7 @@ public:
 private:
     SDL_GPUDevice* device;
     // Library of loaded textures owned solely by the AssetManager
-    mutable std::unordered_map<std::string, std::unique_ptr<SDL_GPUTexture, GPUTextureDeleter>> mTextures;
+    mutable std::unordered_map<std::string, std::unique_ptr<Texture>> mTextures;
     // Library of loaded SpriteSheet owned solely by the AssetManager. Utilizes unique pointer to avoid pointer invalidation in unordered map
     mutable std::unordered_map<std::string, std::unique_ptr<SpriteSheet>> mSpriteSheets;
 };

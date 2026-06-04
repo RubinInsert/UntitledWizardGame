@@ -52,12 +52,13 @@ void TileMap::render(SDL_Renderer& renderer, const Camera& camera, const WorldSe
                     finalW,
                     finalH
                 };
-                SDL_RenderTexture(
-                    &renderer, 
-                    sheet->getTexture(), 
-                    &sheet->getFrame(sprite.frame),
-                    &destRect
-                );
+                // Needs to be replaced with a Render System register call
+                // SDL_RenderTexture(
+                //     &renderer, 
+                //     sheet->getTexture(), 
+                //     &sheet->getFrame(sprite.frame),
+                //     &destRect
+                // );
             }
         }
     } 

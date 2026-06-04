@@ -11,7 +11,7 @@ AssetManager::AssetManager(SDL_GPUDevice* device):
     
 }
 AssetManager::~AssetManager() {}
-SDL_GPUTexture* AssetManager::getTexture(const std::string& filePath) {
+Texture* AssetManager::getTexture(const std::string& filePath) {
     auto iterator = mTextures.find(filePath);
     SDL_Log("Retrieving:", filePath);
     if(iterator != mTextures.end()) {
@@ -53,6 +53,10 @@ SDL_GPUTexture* AssetManager::getTexture(const std::string& filePath) {
         void* dataPtr = SDL_MapGPUTransferBuffer(device, stagingBuffer, false);
         std::memcpy(dataPtr, formattedSurface->pixels, textureSize);
         SDL_UnmapGPUTransferBuffer(device, stagingBuffer);
+
+
+        // Before deleting the surface we fill our texture struct with relevant info
+        std::unique_ptr<Texture> outputTexture = std::make_unique<Texture>(rawTex, formattedSurface->w, formattedSurface->h, device);
         SDL_DestroySurface(formattedSurface); // Surface data safely in staging buffer now
 
         SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(device);
@@ -75,12 +79,9 @@ SDL_GPUTexture* AssetManager::getTexture(const std::string& filePath) {
 
         // Safely release staging resources (the GPU safely references this until complete)
         SDL_ReleaseGPUTransferBuffer(device, stagingBuffer);
-        std::unique_ptr<SDL_GPUTexture, GPUTextureDeleter> texture(rawTex, GPUTextureDeleter{ device }); // Declare with SDL_ReleaseGPUTexture as a custom destructor.
-        auto cachedTexture = mTextures.emplace(filePath, std::move(texture)); // Transfer ownership of the pointer into the map
+        auto cachedTexture = mTextures.emplace(filePath, std::move(outputTexture)); // Transfer ownership of the pointer into the map
         return cachedTexture.first->second.get(); // Return raw pointer for observation
     }
-    SDL_GPUTexture* tex;
-    return tex;
 }
 SpriteSheet* AssetManager::getSpriteSheet(const std::string& filePath, 
                                           float frameWidth, float frameHeight,

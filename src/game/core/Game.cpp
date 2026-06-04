@@ -12,6 +12,7 @@
 #include "game/world/MapLoader.hpp"
 #include "game/player/PlayerAnims.hpp"
 #include "engine/render/DebugDrawer.hpp"
+#include "engine/render/Texture.hpp"
 #include <vector>
 Game::Game(AssetManager& assetManager, InputManager& inputManager, TimeManager& time, WorldSettings& worldSettings, float viewportWidth, float viewportHeight)
     : assetManager(assetManager)
@@ -31,9 +32,8 @@ void Game::createScene() {
             std::string playerAssetPath {"assets/magician.png"};
             player = registry.create();
             // Load texture from asset manager
-            SDL_Texture* texture = assetManager.getTexture(playerAssetPath);
-            float width = 0.f, height = 0.f;
-            if (texture) SDL_GetTextureSize(texture, &width, &height);
+            Texture* texture = assetManager.getTexture(playerAssetPath);
+            float width = texture->width, height = texture->height;
             
             // Choose frame from sprite
             float frameWidth = width / 8.f;

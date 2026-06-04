@@ -43,7 +43,7 @@ void SpriteRenderer::render(const entt::registry& registry, SDL_Renderer* render
             visualWidth * camera.zoom,
             visualHeight * camera.zoom
         };
-
-        SDL_RenderTexture(renderer, sprite.src->getTexture(), &frameRect, &destRect);
+        // To be changed to adopt rendering system:
+        //SDL_RenderTexture(renderer, sprite.src->getTexture(), &frameRect, &destRect);
     }
 }

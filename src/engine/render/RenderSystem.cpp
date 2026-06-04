@@ -47,7 +47,8 @@ void RenderSystem::runHeightMapPass(SDL_GPUCommandBuffer* cmd) {}
 void RenderSystem::runShadowPass(SDL_GPUCommandBuffer* cmd) {}
 void RenderSystem::runAlbedoPass(SDL_GPUCommandBuffer* cmd) {
     SDL_GPUTexture* swapchainTex;
-    if(SDL_AcquireGPUSwapchainTexture(cmd, targetWindow, &swapchainTex, nullptr, nullptr)) {
+    Uint32 w, h;
+    if(SDL_WaitAndAcquireGPUSwapchainTexture (cmd, targetWindow, &swapchainTex, &w, &h)) {
         // Define the color target info
         SDL_GPUColorTargetInfo colorTargetInfo = {};
         colorTargetInfo.texture = swapchainTex;
@@ -55,10 +56,10 @@ void RenderSystem::runAlbedoPass(SDL_GPUCommandBuffer* cmd) {
         colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
         colorTargetInfo.store_op = SDL_GPU_STOREOP_STORE;
 
-        // Begin the pass that draws to the screen
+    //     // Begin the pass that draws to the screen
         SDL_GPURenderPass* renderPass = SDL_BeginGPURenderPass(cmd, &colorTargetInfo, 1, nullptr);
 
-        // Render stuff?
+    //     // Render stuff?
 
         
         SDL_EndGPURenderPass(renderPass);

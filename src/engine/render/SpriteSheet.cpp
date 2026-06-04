@@ -1,9 +1,8 @@
 #include "engine/render/SpriteSheet.hpp"
 #include "engine/core/AssetManager.hpp"
 SpriteSheet::SpriteSheet(AssetManager& assetManager, const std::string& assetPath, float frameWidth, float frameHeight, int cols, int rows, float marginX, float marginY, float spacingX, float spacingY) {
-    texture = assetManager.getTexture(assetPath);
-    float texW = 0.0f, texH = 0.0f;
-    SDL_GetTextureSize(texture, &texW, &texH);
+    this->texture = assetManager.getTexture(assetPath);
+    float texW = texture->width, texH = texture->height;
 
     // If the image is smaller than our layout parameters, it's a fallback error asset
     if (texW < marginX + frameWidth) {
@@ -29,7 +28,7 @@ SpriteSheet::SpriteSheet(AssetManager& assetManager, const std::string& assetPat
         }
     }
 }
-SDL_Texture* SpriteSheet::getTexture() const {
+Texture* SpriteSheet::getTexture() const {
     return texture;
 }
 const SDL_FRect& SpriteSheet::getFrame(int index) const {

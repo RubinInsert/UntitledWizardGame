@@ -21,9 +21,7 @@ bool Engine::Init() {
             SDL_Log( "Window could not be created! SDL error: %s\n", SDL_GetError() );
             success = false;
         }
-        // Link Newly created renderer to Asset manager
-        assetManager.setRenderer(windowManager.getRenderer());
-
+        
         SDL_GPUDevice* gpuDevice = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_DXIL, true, nullptr);
         if (!gpuDevice) {
             SDL_Log("Failed to create GPU device: %s", SDL_GetError());
@@ -33,13 +31,18 @@ bool Engine::Init() {
             SDL_Log("Failed to claim window: %s", SDL_GetError());
             return false;
         }
+        // Link Newly created GPU device to Systems
+        assetManager.setGPUDevice(gpuDevice);
         renderSystem.setGPUDevice(gpuDevice);
         renderSystem.setTargetWindow(windowManager.getWindow());
     }
     return success;
 }
 int Engine::Run(Game& game) {
+            int frameCount = 0;
             while (inputManager.shouldQuit() == false) {
+                SDL_Log("Frame %d - shouldQuit = %d", frameCount++, inputManager.shouldQuit());
+                frameCount++;
                 // Clear any previously drawn debug boxes
                // DebugDrawer::Clear();
                 // Update elapsed and delta times.
@@ -48,7 +51,7 @@ int Engine::Run(Game& game) {
                 // Register inputs
                 inputManager.update();
 
-               // game.update();
+                game.update();
                 // Fill the surface white
                 // SDL_SetRenderDrawColor(windowManager.getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
                 // SDL_RenderClear(windowManager.getRenderer());
