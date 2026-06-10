@@ -27,6 +27,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # 4. Find SDL3
 # vcpkg makes this package available via 'find_package'
  find_package(SDL3 CONFIG REQUIRED)
+ find_package(SDL3_shadercross CONFIG REQUIRED)
  find_package(SDL3_image REQUIRED)
  find_package(EnTT REQUIRED)
  find_package(nlohmann_json CONFIG REQUIRED)
@@ -58,6 +59,7 @@ add_executable(${PROJECT_NAME}
 # SDL3::SDL3main is required for the entry point (the main function)
 target_link_libraries(${PROJECT_NAME} PRIVATE
                     SDL3::SDL3
+                    SDL3_shadercross::SDL3_shadercross
                     SDL3_image::SDL3_image
                     EnTT::EnTT
                     nlohmann_json::nlohmann_json)

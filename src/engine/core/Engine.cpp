@@ -21,7 +21,7 @@ bool Engine::Init() {
             SDL_Log( "Window could not be created! SDL error: %s\n", SDL_GetError() );
             success = false;
         }
-        
+        SDL_SetHint(SDL_HINT_RENDER_GPU_DEBUG, "1");
         SDL_GPUDevice* gpuDevice = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_DXIL, true, nullptr);
         if (!gpuDevice) {
             SDL_Log("Failed to create GPU device: %s", SDL_GetError());
@@ -35,6 +35,7 @@ bool Engine::Init() {
         assetManager.setGPUDevice(gpuDevice);
         renderSystem.setGPUDevice(gpuDevice);
         renderSystem.setTargetWindow(windowManager.getWindow());
+        renderSystem.initResources(screenWidth, screenHeight);
     }
     return success;
 }

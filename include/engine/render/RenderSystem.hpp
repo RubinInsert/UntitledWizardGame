@@ -10,6 +10,11 @@ enum RenderPass {
     Shadow,
     Albedo
 };
+struct PositionTextureVertex {
+    float pos[2];     // position (2 floats)
+    float uv[2];        // texture coordinates (2 floats)
+    float color[4]; // colour (4 floats)
+};
 struct RenderSprite {
     Texture* texture;
     SDL_FRect sourceRect;
@@ -40,7 +45,21 @@ class RenderSystem {
         // GPU Resources
         SDL_GPUTexture* heightBuffer; // Render target for the HeightMap Pass
         SDL_GPUTexture* shadowBuffer;
+        SDL_GPUBuffer* vertexBuffer;  // For dynamic vertex data
+        SDL_GPUBuffer* indexBuffer;  // For dynamic index data
+        SDL_GPUBuffer* uniformBuffer; // For projection matrix
+        SDL_GPUSampler* defaultSampler;
+        SDL_GPUGraphicsPipeline* spritePipeline;
 
+        // Shaders are to be moved and owned by the AssetManager
+        SDL_GPUShader* vertexShader;
+        SDL_GPUShader* fragmentShader;
+        SDL_GPUShader* LoadShader(SDL_GPUDevice* device,
+            const char* shaderFilename,
+	        Uint32 samplerCount,
+            Uint32 uniformBufferCount,
+            Uint32 storageBufferCount,
+            Uint32 storageTextureCount);
         // Internal Pass Methods
         void runHeightMapPass(SDL_GPUCommandBuffer* cmd);
         void runShadowPass(SDL_GPUCommandBuffer* cmd);
@@ -48,6 +67,8 @@ class RenderSystem {
 
         // Internal Sprite rendering
         void processSpriteQueue(SDL_GPURenderPass* renderPass);
+        void paintSprite(SDL_GPURenderPass* renderPass, const RenderSprite& sprite);
+        bool createShaders();
+        bool createGraphicsPipeline();        
 };
-
 #endif
