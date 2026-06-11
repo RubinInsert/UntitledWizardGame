@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-# 1. OPTIONAL: Auto-bootstrap vcpkg if it's not ready
+# Auto-bootstrap vcpkg if it's not ready
 if(WIN32)
     set(VCPKG_EXE "${CMAKE_SOURCE_DIR}/vcpkg/vcpkg.exe")
     set(VCPKG_BOOTSTRAP "${CMAKE_SOURCE_DIR}/vcpkg/bootstrap-vcpkg.bat")
@@ -9,50 +9,44 @@ else()
     set(VCPKG_BOOTSTRAP "${CMAKE_SOURCE_DIR}/vcpkg/bootstrap-vcpkg.sh")
 endif()
 
+# On First Setup, if vcpkg isn't bootstrapped, do it automatically (for easy portability and setup)
 if(NOT EXISTS "${VCPKG_EXE}")
     message(STATUS "vcpkg executable not found. Bootstrapping...")
     execute_process(COMMAND "${VCPKG_BOOTSTRAP}" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/vcpkg")
 endif()
 
-# 2. Set the Toolchain File automatically
+# Set the Toolchain File automatically
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
 
 # 3. Define Project
 project(MySDLGame LANGUAGES CXX)
 
-# Use C++17 (standard for modern SDL development)
+# Use C++17 standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 4. Find SDL3
-# vcpkg makes this package available via 'find_package'
+# 4. Find Third Party Libraries
  find_package(SDL3 CONFIG REQUIRED)
  find_package(SDL3_shadercross CONFIG REQUIRED)
  find_package(SDL3_image REQUIRED)
  find_package(EnTT REQUIRED)
  find_package(nlohmann_json CONFIG REQUIRED)
+
+# Include additional CMake modules
+include(cmake/Shaders.cmake) # Custom module to handle shader compilation
+
+
 # 5. Create the executable
 # Notice we point to src/main.cpp because of your new folder structure
-add_executable(${PROJECT_NAME}
- src/main.cpp
- src/engine/core/Engine.cpp
- src/engine/core/WindowManager.cpp
- src/engine/core/AssetManager.cpp
- src/engine/core/InputManager.cpp
- src/engine/core/TimeManager.cpp
- src/engine/core/AnimatorSystem.cpp
- src/engine/render/RenderSystem.cpp
- src/engine/render/SpriteRenderer.cpp
- src/engine/render/SpriteSheet.cpp
- src/game/core/Game.cpp
- src/game/core/CameraSystem.cpp
- src/game/player/PlayerController.cpp
- src/game/movement/PhysicsSystem.cpp
- src/game/world/TileMap.cpp
- src/game/movement/CollisionSystem.cpp
- src/game/world/MapLoader.cpp
- src/game/world/TileSet.cpp
- )
+file(GLOB_RECURSE SOURCE_FILES 
+    CONFIGURE_DEPENDS
+    "src/*.cpp"
+    "src/*.c"
+    "src/*.cc"
+)
+
+# Remove the manual list
+add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
 # 6. Link SDL3
 # SDL3::SDL3 is the main library
@@ -69,7 +63,11 @@ target_include_directories(${PROJECT_NAME} PRIVATE
                             src
                             include)
 
-
+compile_all_shaders(SHADER_TARGET)
+if(SHADER_TARGET)
+    add_dependencies(${PROJECT_NAME} ${SHADER_TARGET})
+    message(STATUS "Added shader compilation dependency: ${SHADER_TARGET}")
+endif()
 # Copy Assets to output directory after build
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory

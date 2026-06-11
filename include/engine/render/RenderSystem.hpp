@@ -22,6 +22,9 @@ struct RenderSprite {
     int layer;
     SDL_Color colorMod;
 };
+struct Matrix4x4 {
+    float m[16];
+};
 class RenderSystem {
     public:
         RenderSystem(SDL_GPUDevice* device);
@@ -66,9 +69,13 @@ class RenderSystem {
         void runAlbedoPass(SDL_GPUCommandBuffer* cmd);
 
         // Internal Sprite rendering
-        void processSpriteQueue(SDL_GPURenderPass* renderPass);
-        void paintSprite(SDL_GPURenderPass* renderPass, const RenderSprite& sprite);
+        void processSpriteQueue(SDL_GPUCommandBuffer* cmd, SDL_GPURenderPass* renderPass);
+        void paintSprite(SDL_GPUCommandBuffer* cmd, SDL_GPURenderPass* renderPass, const RenderSprite& sprite);
         bool createShaders();
-        bool createGraphicsPipeline();        
-};
+        bool createGraphicsPipeline();
+        void processSpriteVertices(SDL_GPUCommandBuffer* cmd);
+        Matrix4x4 CreateOrthoProjection(float left, float right, float bottom, float top, float nearZ, float farZ);    
+        Matrix4x4 CalculateModelMatrix(float x, float y, float width, float height);
+        int spriteCountForDraw = 0;
+    };
 #endif
