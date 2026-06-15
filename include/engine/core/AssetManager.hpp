@@ -11,6 +11,7 @@ class AssetManager {
 public:
     AssetManager(SDL_GPUDevice* device);
     ~AssetManager();
+    void Init();
 
     /// @brief Retrieves an SDL_Texture from the cache, loading it from the disk if not present in cache.
     /// @param filePath The relative path to the asset (e.g., "assets/textures/hero.png")
@@ -40,5 +41,15 @@ private:
     mutable std::unordered_map<std::string, std::unique_ptr<Texture>> mTextures;
     // Library of loaded SpriteSheet owned solely by the AssetManager. Utilizes unique pointer to avoid pointer invalidation in unordered map
     mutable std::unordered_map<std::string, std::unique_ptr<SpriteSheet>> mSpriteSheets;
+
+    // Master Atlas State
+    SDL_GPUTexture* mMasterAtlas = nullptr;
+    const Uint32 ATLAS_SIZE = 8192; // Adjust based on needs (e.g., 2048 or 4048)
+    
+    // Simple Shelf Packer tracking variables
+    Uint32 mCurrentX = 2;       // Start with a small 2px margin padding
+    Uint32 mCurrentY = 2;
+    Uint32 mMaxRowHeight = 0;
+    const Uint32 PADDING = 2;
 };
 #endif

@@ -1,12 +1,15 @@
-struct PixelInput {
-    float2 texCoord : TEXCOORD0;
-    float4 color    : TEXCOORD1;
-    float4 position : SV_POSITION;
+// Register spaces are significant for resource binding in DirectX 12, ensuring no conflicts with other resources.
+// https://wiki.libsdl.org/SDL3/SDL_CreateGPUShader
+Texture2D<float4> Texture : register(t0, space2); 
+SamplerState Sampler : register(s0, space2);
+
+struct Input
+{
+    float2 TexCoord : TEXCOORD0;
+    float4 Color : TEXCOORD1;
 };
 
-Texture2D tex0 : register(t0, space2);
-SamplerState samp0 : register(s0, space2); // Shared register index space
-
-float4 main(PixelInput input) : SV_TARGET {
-    return tex0.Sample(samp0, input.texCoord) * input.color;
+float4 main(Input input) : SV_Target0
+{
+    return input.Color * Texture.Sample(Sampler, input.TexCoord);
 }

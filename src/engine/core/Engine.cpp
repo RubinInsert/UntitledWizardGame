@@ -33,6 +33,7 @@ bool Engine::Init() {
         }
         // Link Newly created GPU device to Systems
         assetManager.setGPUDevice(gpuDevice);
+        assetManager.Init();
         renderSystem.setGPUDevice(gpuDevice);
         renderSystem.setTargetWindow(windowManager.getWindow());
         renderSystem.initResources(screenWidth, screenHeight);
@@ -54,8 +55,8 @@ int Engine::Run(Game& game) {
                 // SDL_SetRenderDrawColor(windowManager.getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
                 // SDL_RenderClear(windowManager.getRenderer());
                 
-                spriteRenderer.render(game.getRegistry(), renderSystem, game.getCamera(), worldSettings);
                 game.render(renderSystem);
+                spriteRenderer.render(game.getRegistry(), renderSystem, game.getCamera(), worldSettings);
                 renderSystem.render();
                 // Render additional game renders
                 // Render sprites through the sprite renderer

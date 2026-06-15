@@ -10,17 +10,24 @@ enum RenderPass {
     Shadow,
     Albedo
 };
-struct PositionTextureVertex {
-    float pos[2];     // position (2 floats)
-    float uv[2];        // texture coordinates (2 floats)
-    float color[4]; // colour (4 floats)
-};
+// struct PositionTextureVertex {
+//     float pos[2];     // position (2 floats)
+//     float uv[2];        // texture coordinates (2 floats)
+//     float color[4]; // colour (4 floats)
+// };
 struct RenderSprite {
     Texture* texture;
     SDL_FRect sourceRect;
     SDL_FRect destRect;
     int layer;
     SDL_Color colorMod;
+};
+struct SpriteInstance {
+    float x, y, z;
+    float rotation;
+    float w, h, padding_a, padding_b;
+    float tex_u, tex_v, tex_w, tex_h;
+    float r, g, b, a;
 };
 struct Matrix4x4 {
     float m[16];
@@ -46,17 +53,16 @@ class RenderSystem {
         std::queue<RenderSprite> spriteQueue;
 
         // GPU Resources
-        SDL_GPUTexture* heightBuffer; // Render target for the HeightMap Pass
-        SDL_GPUTexture* shadowBuffer;
-        SDL_GPUBuffer* vertexBuffer;  // For dynamic vertex data
-        SDL_GPUBuffer* indexBuffer;  // For dynamic index data
-        SDL_GPUBuffer* uniformBuffer; // For projection matrix
-        SDL_GPUSampler* defaultSampler;
-        SDL_GPUGraphicsPipeline* spritePipeline;
+        SDL_GPUShader* vertexShader = nullptr;
+        SDL_GPUShader* fragmentShader = nullptr;
+        SDL_GPUGraphicsPipeline* spritePipeline = nullptr;
+        SDL_GPUSampler* defaultSampler = nullptr;
 
-        // Shaders are to be moved and owned by the AssetManager
-        SDL_GPUShader* vertexShader;
-        SDL_GPUShader* fragmentShader;
+
+        // Sprite Instance storage
+        static const Uint32 MAX_SPRITES = 8192;
+        SDL_GPUTransferBuffer* spriteTransferBuffer = nullptr;
+        SDL_GPUBuffer* spriteStorageBuffer = nullptr;
         SDL_GPUShader* LoadShader(SDL_GPUDevice* device,
             const char* shaderFilename,
 	        Uint32 samplerCount,
@@ -69,8 +75,7 @@ class RenderSystem {
         void runAlbedoPass(SDL_GPUCommandBuffer* cmd);
 
         // Internal Sprite rendering
-        void processSpriteQueue(SDL_GPUCommandBuffer* cmd, SDL_GPURenderPass* renderPass);
-        void paintSprite(SDL_GPUCommandBuffer* cmd, SDL_GPURenderPass* renderPass, const RenderSprite& sprite);
+        void processSpriteQueue(SDL_GPUCommandBuffer* cmd);
         bool createShaders();
         bool createGraphicsPipeline();
         void processSpriteVertices(SDL_GPUCommandBuffer* cmd);
