@@ -115,7 +115,7 @@ bool RenderSystem::createMeshPipeline() {
 
     SDL_GPUShader* vertShader = LoadShader(device, "cube.vert", 0, 1, 0, 0);
     if (!vertShader) return false;
-    SDL_GPUShader* fragShader = LoadShader(device, "cube.frag", 0, 0, 0, 0);
+    SDL_GPUShader* fragShader = LoadShader(device, "cube.frag", 0, 1, 0, 0);
     if (!fragShader) return false;
 
     // Vertex buffer description — one stream of interleaved Vertex structs
@@ -284,6 +284,17 @@ void RenderSystem::renderCube(SDL_GPUCommandBuffer* cmd) {
     uniforms.projection = camera.getProjectionMatrix();
     SDL_PushGPUVertexUniformData(cmd, 0, &uniforms, sizeof(uniforms));
 
+	struct LightGPU {
+    glm::vec4 direction;
+    glm::vec4 color;
+    glm::vec4 ambient;
+    glm::vec4 cameraPos;
+	} lightData;
+	lightData.direction = glm::vec4(glm::normalize(glm::vec3(0.5f, 1.0f, 0.3f)), 0.0f);
+	lightData.color     = glm::vec4(0.9f, 0.9f, 0.9f, 1.0f);
+	lightData.ambient   = glm::vec4(0.1f, 0.1f, 0.15f, 1.0f);
+	lightData.cameraPos = glm::vec4(camera.position, 1.0f);
+	SDL_PushGPUFragmentUniformData(cmd, 0, &lightData, sizeof(lightData));
     // Bind vertex & index buffers
     SDL_GPUBufferBinding vbBind{ testCube.vertexBuffer, 0 };
     SDL_BindGPUVertexBuffers(pass, 0, &vbBind, 1);
