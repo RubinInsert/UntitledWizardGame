@@ -18,6 +18,12 @@ float4 main(FragmentInput input) : SV_TARGET {
     float3 lightDir = normalize(lights.direction.xyz);
     float diff = max(dot(normal, lightDir), 0.0);
     
-    float3 finalColor = baseColor * (lights.ambient.xyz + lights.color.xyz * diff);
+    // Blinn-Phong specular
+    float3 V = normalize(lights.cameraPos.xyz - input.worldPos); // View Dir: Surf -> Camera
+    float3 H = normalize(lightDir + V); // Halfway vector
+    float spec = pow(max(dot(normal, H), 0.0), 2.0);  // 32 = shininess
+
+    float3 finalColor = baseColor * (lights.ambient.xyz + lights.color.xyz * diff) 
+                    + lights.color.xyz * spec * 0.5;
     return float4(finalColor, 1.0);
 }
