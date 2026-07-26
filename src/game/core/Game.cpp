@@ -17,14 +17,9 @@
 Game::Game(Engine& engine)
     : engine(engine)
 {
-    camera.position = {0.f, 0.f};
-    camera.zoom = 1.f;
-    camera.viewportWidth = engine.getScreenWidth();
-    camera.viewportHeight = engine.getScreenHeight();
     createScene();
 }
 void Game::createScene() {
-            camera.zoom = 2.5f;
             std::string imagePath {"assets/snail.png"};
             std::string playerAssetPath {"assets/magician.png"};
             player = registry.create();
@@ -76,8 +71,9 @@ void Game::update () {
     physics.update(registry, engine.getTimeManager().getDeltaTime());
     collisions.update(registry, worldMap.tileMap);
     // If left mouse button is down, allow CameraSystem to handle dragging
+    RenderSystem& renderSys = engine.getRenderSystem();
     if (engine.getInputManager().isMouseButtonDown(SDL_BUTTON_LEFT)) {
-        cameraSystem.update(camera, engine.getInputManager());
+        cameraSystem.update(renderSys.getCamera(), engine.getInputManager());  // 3D camera
         return;
     }
     // Otherwise, follow the player transform if available

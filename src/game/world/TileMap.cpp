@@ -24,49 +24,32 @@ void TileMap::setTile(int x, int y, int tileID) {
     }
 }
 void TileMap::render(RenderSystem& renderSystem, const Camera& camera, const WorldSettings& worldSettings) {
-    for(TileLayer& layer : layers) {
-        if(layer.isVisible == false) return;
-        for (int y = 0; y < height; ++y) {
-            for (int x = 0; x < width; ++x) {
-                int tileID = getTile(x, y, layer); // Get the tile at (x, y) world coordinates
-                if (tileID == -1) continue;
-                
-                auto it = globalIdToSprite.find(tileID);
-                if (it == globalIdToSprite.end()) {
-                    continue; // Sprite asset not found for this ID, skip drawing it
-                }
-                const Sprite& sprite = it->second;
-                SpriteSheet* sheet = sprite.src;
-                if (!sheet) continue;
-                SDL_FRect tileDimensions = sheet->getFrame(sprite.frame);
-                // 1. Convert Grid coordinates to screen Screen (No Y-flip needed, y is already Grid Space)
-                SDL_FPoint screen = Coordinate::GridToScreen(x, y, camera, worldSettings);
-                // Scale width/height according to camera zoom;
-                float finalW = tileDimensions.w * camera.zoom;
-                float finalH = tileDimensions.h * camera.zoom;
-
-                // 4. DRAW CENTERING
-                SDL_FRect destRect { // Bottom-Center Anchor point
-                    screen.x - (finalW * 0.5f),
-                    screen.y - (finalH) + (0.5f * WorldSettings::tileHeight * camera.zoom), // TileHeight is in map units, so it must be multiplied by zoom
-                    finalW,
-                    finalH
-                };
-                RenderSprite renderSprite{
-                    sprite.src->getTexture(),
-                    sheet->getFrame(sprite.frame),
-                    destRect,
-                    0, // Layer
-                    SDL_Color{255, 255, 255, 255} // Color modification
-                };
-                renderSystem.draw(renderSprite);
-                // SDL_RenderTexture(
-                //     &renderer, 
-                //     sheet->getTexture(), 
-                //     &sheet->getFrame(sprite.frame),
-                //     &destRect
-                // );
-            }
-        }
-    } 
+    // TODO: Reimplement for 3D rendering pipeline
+    // for(TileLayer& layer : layers) {
+    //     if(layer.isVisible == false) return;
+    //     for (int y = 0; y < height; ++y) {
+    //         for (int x = 0; x < width; ++x) {
+    //             int tileID = getTile(x, y, layer);
+    //             if (tileID == -1) continue;
+    //
+    //             auto it = globalIdToSprite.find(tileID);
+    //             if (it == globalIdToSprite.end()) continue;
+    //
+    //             const Sprite& sprite = it->second;
+    //             SpriteSheet* sheet = sprite.src;
+    //             if (!sheet) continue;
+    //             SDL_FRect tileDimensions = sheet->getFrame(sprite.frame);
+    //             SDL_FPoint screen = Coordinate::GridToScreen(x, y, camera, worldSettings);
+    //             float finalW = tileDimensions.w;
+    //             float finalH = tileDimensions.h;
+    //             SDL_FRect destRect {
+    //                 screen.x - (finalW * 0.5f),
+    //                 screen.y - (finalH) + (0.5f * WorldSettings::tileHeight),
+    //                 finalW,
+    //                 finalH
+    //             };
+    //             // 2D sprite draw call removed — adapting to 3D
+    //         }
+    //     }
+    // }
 }

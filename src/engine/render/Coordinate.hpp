@@ -24,9 +24,7 @@ public:
 
     // Applies Camera offsets to Isometric projection to give (X, Y) in pixel space.
     static SDL_FPoint IsoToScreen(float isoX, float isoY, const Camera& camera) {
-        float sx = (isoX - camera.position.x) * camera.zoom + (camera.viewportWidth * 0.5f);
-        float sy = (isoY - camera.position.y) * camera.zoom + (camera.viewportHeight * 0.5f);
-        return { sx, sy };
+        return { 0, 0 };
     }
     // Converts Grid space (int x, int y) to the pixel coordinate on the screen
     // Differs from WorldToScreen() by not applying a flip on the Y axis: (X+, Y-) 
@@ -62,13 +60,7 @@ static GridPoint WorldToGrid(float wx, float wy) {
 
     // Converts from Screen Pixel Space to World point
     static SDL_FPoint ScreenToWorld(float sx, float sy, const Camera& camera, const WorldSettings& settings) {
-        float isoX = ((sx - (camera.viewportWidth * 0.5f)) / camera.zoom) + camera.position.x;
-        float isoY = ((sy - (camera.viewportHeight * 0.5f)) / camera.zoom) + camera.position.y;
-        float tw2 = settings.tileWidth * 0.5f;
-        float th2 = settings.tileHeight * 0.5f;
-        float wx = (isoX / tw2 + isoY / th2) * 0.5f;
-        float wy = (isoY / th2 - isoX / tw2) * 0.5f;
-        return { wx, wy };
+        return { 0, 0 };
     }
 
         // Converts raw pixel values from a Tiled Isometric Map into your top-down World Coordinates (+Y Up)

@@ -7,9 +7,10 @@ void CameraSystem::update(Camera& camera, const InputManager& input) {
         SDL_FPoint mouse = input.getMousePosition();
         SDL_FPoint lastMouse = input.getPreviousMousePosition();
         SDL_FPoint delta{mouse.x - lastMouse.x, mouse.y - lastMouse.y};
-
-        camera.position.x -= delta.x / camera.zoom;
-        camera.position.y -= delta.y / camera.zoom;
+        if (input.isMouseButtonDown(SDL_BUTTON_LEFT)) {  // right-click drag to orbit
+            float sensitivity = 0.2f;
+            camera.orbit(delta.x * sensitivity, delta.y * sensitivity);
+        }
 }
 
 void CameraSystem::followPlayer(Camera& camera, const Transform& playerTransform, const TimeManager& time, const WorldSettings& worldSettings) {

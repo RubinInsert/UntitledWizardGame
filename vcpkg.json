@@ -5,6 +5,7 @@
     "sdl3",
     "sdl3-shadercross",
     "directx-dxc",
+    "glm",
     {
       "name": "sdl3-image",
       "features": [ "png", "jpeg" ]

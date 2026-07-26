@@ -21,8 +21,8 @@ public:
         // Project into Isometric Space & Apply camera transformations
         SDL_FPoint screen = Coordinate::WorldToScreen(entry.rect.x, entry.rect.y, camera, settings);
         // Create the Rect (Matches SpriteRenderer's centering logic)
-        float visualW = entry.rect.w * settings.tileWidth * camera.zoom;
-        float visualH = entry.rect.h * settings.tileHeight * camera.zoom;
+        float visualW = entry.rect.w * settings.tileWidth;
+        float visualH = entry.rect.h * settings.tileHeight;
 
         SDL_FRect destRect = {
             screen.x - (visualW * 0.5f),

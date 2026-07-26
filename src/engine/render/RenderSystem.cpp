@@ -8,175 +8,28 @@ RenderSystem::RenderSystem(SDL_GPUDevice* device) {
 }
 
 RenderSystem::~RenderSystem() {
-    if (spritePipeline) SDL_ReleaseGPUGraphicsPipeline(device, spritePipeline);
-    if (defaultSampler) SDL_ReleaseGPUSampler(device, defaultSampler);
-    if (spriteTransferBuffer) SDL_ReleaseGPUTransferBuffer(device, spriteTransferBuffer);
-    if (spriteStorageBuffer) SDL_ReleaseGPUBuffer(device, spriteStorageBuffer);
 }
+
 void RenderSystem::setGPUDevice(SDL_GPUDevice* device) { this->device = device; }
 void RenderSystem::setTargetWindow(SDL_Window* window) { targetWindow = window; }
-void RenderSystem::draw(const RenderSprite& sprite) { spriteQueue.push(sprite); }
+
 void RenderSystem::initResources(int width, int height) {
-	if(!createShaders()) return;
-	if(!createGraphicsPipeline()) return;
-	
-	// Point Clamp (Nearest Neighbour Sampler)
-		SDL_GPUSamplerCreateInfo samplerInfo = {};
-		samplerInfo.min_filter = SDL_GPU_FILTER_NEAREST;
-		samplerInfo.mag_filter = SDL_GPU_FILTER_NEAREST;
-		samplerInfo.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST;
-		samplerInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-		samplerInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-		samplerInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-		defaultSampler = SDL_CreateGPUSampler(device, &samplerInfo);
-	// Create Transfer Upload buffer for structured data instances
-		SDL_GPUTransferBufferCreateInfo transferInfo = {};
-		transferInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
-		transferInfo.size = MAX_SPRITES * sizeof(SpriteInstance);
-		spriteTransferBuffer = SDL_CreateGPUTransferBuffer(device, &transferInfo);
-	// Create GPU read Storage Buffer 
-		SDL_GPUBufferCreateInfo bufferInfo = {};
-		bufferInfo.usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ;
-		bufferInfo.size = MAX_SPRITES * sizeof(SpriteInstance);
-		spriteStorageBuffer = SDL_CreateGPUBuffer(device, &bufferInfo);
-
+    SDL_GPUCommandBuffer* setupCmd = SDL_AcquireGPUCommandBuffer(device);
+    testCube = Mesh::createCube();
+    testCube.upload(device, setupCmd);
+    SDL_SubmitGPUCommandBuffer(setupCmd);
+    if (!createMeshPipeline()) return;
     resourcesInitialized = true;
-}
-bool RenderSystem::createShaders() {
-    // Vertex shader needs 1 uniform buffer for the projection matrix
-    vertexShader = LoadShader(device, "sprite.vert", 0, 1, 1, 0);
-    if (!vertexShader) return false;
-
-    // Fragment shader uses 1 sampler for the texture.
-    fragmentShader = LoadShader(device, "sprite.frag", 1, 0, 0, 0);
-    if (!fragmentShader) return false;
-
-    return true;
 }
 
 void RenderSystem::render() {
+	if (!resourcesInitialized) return;
     SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(device);
     if(!cmd) return;
-
-    // Run render passes
-    runHeightMapPass(cmd);
-    runShadowPass(cmd);
-
-    runAlbedoPass(cmd);
-	while(!spriteQueue.empty()) spriteQueue.pop();
+    renderCube(cmd);
     SDL_SubmitGPUCommandBuffer(cmd);
 }
 
-void RenderSystem::processSpriteQueue(SDL_GPUCommandBuffer* cmd) {
-    if (spriteQueue.empty()) return;
-
-    Uint32 spriteCount = SDL_min((Uint32)spriteQueue.size(), MAX_SPRITES);
-
-    // Map transfer memory zone
-    SpriteInstance* dataPtr = (SpriteInstance*)SDL_MapGPUTransferBuffer(device, spriteTransferBuffer, true);
-    
-    // Copy queue details sequentially into the staging region
-    std::queue<RenderSprite> tempQueue = spriteQueue;
-    for (Uint32 i = 0; i < spriteCount; ++i) {
-        RenderSprite sprite = tempQueue.front();
-        tempQueue.pop();
-
-        dataPtr[i].x = sprite.destRect.x;
-        dataPtr[i].y = sprite.destRect.y;
-        dataPtr[i].z = 0.0f;
-        dataPtr[i].rotation = 0.0f; // Assign rotation parameters (future implementation))
-        dataPtr[i].w = sprite.destRect.w;
-        dataPtr[i].h = sprite.destRect.h;
-        
-        // Match source texture coordinates maps normalized (0.0 -> 1.0)
-        // Get the pixel dimensions of the original spritesheet
-		float sheetW = static_cast<float>(sprite.texture->width);
-		float sheetH = static_cast<float>(sprite.texture->height);
-
-		// Normalize the local frame boundaries relative to its own sheet (0.0 to 1.0)
-		float localU = sprite.sourceRect.x / sheetW;
-		float localV = sprite.sourceRect.y / sheetH;
-		float localW = sprite.sourceRect.w / sheetW;
-		float localH = sprite.sourceRect.h / sheetH;
-
-		// Scale and shift those local coordinates into global Master Atlas UV space
-		dataPtr[i].tex_u = sprite.texture->uMin + (localU * sprite.texture->uWidth);
-		dataPtr[i].tex_v = sprite.texture->vMin + (localV * sprite.texture->vHeight);
-		dataPtr[i].tex_w = localW * sprite.texture->uWidth;
-		dataPtr[i].tex_h = localH * sprite.texture->vHeight;
-		
-
-		// Assign color values (future implementation)
-        dataPtr[i].r = 1.0f;
-        dataPtr[i].g = 1.0f;
-        dataPtr[i].b = 1.0f;
-        dataPtr[i].a = 1.0f;
-    }
-
-    SDL_UnmapGPUTransferBuffer(device, spriteTransferBuffer); // Ownership back to GPU
-
-    // Create GPU hardware stream pipeline copy allocations
-    SDL_GPUCopyPass* copyPass = SDL_BeginGPUCopyPass(cmd);
-    SDL_GPUTransferBufferLocation srcLocation = { spriteTransferBuffer, 0 };
-    SDL_GPUBufferRegion dstRegion = { spriteStorageBuffer, 0, spriteCount * sizeof(SpriteInstance) };
-    
-    SDL_UploadToGPUBuffer(copyPass, &srcLocation, &dstRegion, true);
-    SDL_EndGPUCopyPass(copyPass);
-}
-
-// Maps a rectangle of pixel space directly to the normalized GPU screen space (0.0 -> 1.0f)
-// Generated with DeepSeek-V3
-Matrix4x4 RenderSystem::CreateOrthoProjection(float left, float right, float bottom, float top, float nearZ, float farZ) {
-    Matrix4x4 result = {0};
-    result.m[0]  = 2.0f / (right - left);
-    result.m[5]  = 2.0f / (top - bottom);
-    result.m[10] = 1.0f / (farZ - nearZ);
-    result.m[12] = -(right + left) / (right - left);
-    result.m[13] = -(top + bottom) / (top - bottom);
-    result.m[14] = -nearZ / (farZ - nearZ);
-    result.m[15] = 1.0f;
-    return result;
-}
-void RenderSystem::runHeightMapPass(SDL_GPUCommandBuffer* cmd) {}
-void RenderSystem::runShadowPass(SDL_GPUCommandBuffer* cmd) {}
-void RenderSystem::runAlbedoPass(SDL_GPUCommandBuffer* cmd) {
-    SDL_GPUTexture* swapchainTex;
-    Uint32 w, h;
-    if(SDL_WaitAndAcquireGPUSwapchainTexture (cmd, targetWindow, &swapchainTex, &w, &h)) {
-        processSpriteQueue(cmd);
-		// Define the color target info
-        SDL_GPUColorTargetInfo colorTargetInfo = {};
-        colorTargetInfo.texture = swapchainTex;
-        colorTargetInfo.clear_color = { 0.39f, 0.58f, 0.93f, 1.0f };; // Black background
-        colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
-        colorTargetInfo.store_op = SDL_GPU_STOREOP_STORE;
-
-    //     // Begin the pass that draws to the screen
-        SDL_GPURenderPass* renderPass = SDL_BeginGPURenderPass(cmd, &colorTargetInfo, 1, nullptr);
-        if(renderPass) {
-			SDL_BindGPUGraphicsPipeline(renderPass, spritePipeline);
-			
-			// Bind the active storage buffer to slot index 0
-			SDL_BindGPUVertexStorageBuffers(renderPass, 0, &spriteStorageBuffer, 1);
-			
-			// Bind texture 
-			SDL_GPUTextureSamplerBinding samplerBinding = {};
-            samplerBinding.texture = spriteQueue.front().texture->get();
-            samplerBinding.sampler = defaultSampler;
-            SDL_BindGPUFragmentSamplers(renderPass, 0, &samplerBinding, 1);
-
-			// Push camera ortho matrix definitions
-			Matrix4x4 projection = CreateOrthoProjection(0.0f, (float)w, (float)h, 0.0f, 0.0f, 1.0f);
-			SDL_PushGPUVertexUniformData(cmd, 0, &projection, sizeof(projection));
-			
-			SDL_DrawGPUPrimitives(renderPass, (Uint32)spriteQueue.size() * 6, 1, 0, 0);
-
-            SDL_EndGPURenderPass(renderPass);
-        }
-
-        
-    }
-}
 // To be moved to Asset Manager
 // https://github.com/TheSpydog/SDL_gpu_examples/blob/main/Examples/Common.c
 SDL_GPUShader* RenderSystem::LoadShader(
@@ -257,111 +110,186 @@ SDL_GPUShader* RenderSystem::LoadShader(
 	return shader;
 }
 
-bool RenderSystem::createGraphicsPipeline() {
-	SDL_Log("=== createGraphicsPipeline START ===");
-    SDL_Log("Device: %p", device);
-    SDL_Log("Target window: %p", targetWindow);
-	// SDL_GPUVertexBufferDescription vertBufferDesc{
-	// 								0,
-	// 								sizeof(PositionTextureVertex),
-	// 								SDL_GPU_VERTEXINPUTRATE_VERTEX,
-	// 								0
-	// 							};
-	// SDL_GPUVertexAttribute vertexAttributes [3] = {
-	// 							{0, 0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, offsetof(PositionTextureVertex, pos)},
-	// 							{1, 0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, offsetof(PositionTextureVertex, uv)},
-	// 							{2, 0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4, offsetof(PositionTextureVertex, color)},
-	// 						};
-	// SDL_GPUVertexInputState vertexInputState{
-	// 							&vertBufferDesc,
-	// 							1,
-	// 							vertexAttributes,
-	// 							3,
-	// 						};
-	SDL_GPURasterizerState rasterizerState{
-								SDL_GPU_FILLMODE_FILL,
-								SDL_GPU_CULLMODE_NONE,
-								SDL_GPU_FRONTFACE_CLOCKWISE,
-								0,
-								0,
-								0,
-								false,
-								false,
-								0,
-								0
-							};
-	SDL_GPUMultisampleState multiSampleState{
-								SDL_GPU_SAMPLECOUNT_1,
-								0,
-								false,
-								false,
-								0,
-								0
-							};
-	SDL_GPUStencilOpState stencilState{
-							SDL_GPU_STENCILOP_KEEP,      // Keep existing stencil value on fail
-							SDL_GPU_STENCILOP_KEEP,      // Keep on pass
-							SDL_GPU_STENCILOP_KEEP, // Keep on depth fail
-							SDL_GPU_COMPAREOP_ALWAYS   // Always pass stencil test
-						};
-	SDL_GPUDepthStencilState depthStencilState{
-								SDL_GPU_COMPAREOP_ALWAYS,
-								stencilState,
-								stencilState,
-								0xFF,
-								0xFF,
-								false,
-								false,
-								false,
-								0,
-								0,
-								0
-							};
-	SDL_GPUColorTargetBlendState blendState {
-		SDL_GPU_BLENDFACTOR_SRC_ALPHA,
-		SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-		SDL_GPU_BLENDOP_ADD,
-		SDL_GPU_BLENDFACTOR_ONE,
-		SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-		SDL_GPU_BLENDOP_ADD,
-		SDL_GPU_COLORCOMPONENT_R | SDL_GPU_COLORCOMPONENT_G | SDL_GPU_COLORCOMPONENT_B | SDL_GPU_COLORCOMPONENT_A,
-		true,
-		true,
-		0,
-		0
-	};
-	SDL_GPUColorTargetDescription colorTargetDesc {
-									SDL_GetGPUSwapchainTextureFormat(device, targetWindow), // query the device and window format dynamically
-									blendState
-								};
-	
-	SDL_GPUGraphicsPipelineTargetInfo targetInfo{
-										&colorTargetDesc,
-										1,
-										SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
-										false,
-										0,
-										0,
-										0	
-									};
-	SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo{
-										vertexShader,
-										fragmentShader,
-										{}, // No Vertex Input because the vert shader pulls directly from buffer
-										SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
-										rasterizerState,
-										multiSampleState,
-										depthStencilState,
-										targetInfo,
-										0
-									};
+bool RenderSystem::createMeshPipeline() {
+    SDL_Log("=== createMeshPipeline START ===");
 
-    spritePipeline = SDL_CreateGPUGraphicsPipeline(device, &pipelineCreateInfo);
-    if (!spritePipeline) {
-        SDL_Log("Failed to create graphics pipeline: %s", SDL_GetError());
+    SDL_GPUShader* vertShader = LoadShader(device, "cube.vert", 0, 1, 0, 0);
+    if (!vertShader) return false;
+    SDL_GPUShader* fragShader = LoadShader(device, "cube.frag", 0, 0, 0, 0);
+    if (!fragShader) return false;
+
+    // Vertex buffer description — one stream of interleaved Vertex structs
+    SDL_GPUVertexBufferDescription vertBufferDesc{
+        0,                           // slot
+        sizeof(Vertex),              // pitch (32 bytes: pos3 + normal3 + uv2)
+        SDL_GPU_VERTEXINPUTRATE_VERTEX,  // input_rate
+        0                            // instance_step_rate
+    };
+
+    // Vertex attributes — 3 attributes matching HLSL TEXCOORD0/1/2
+    SDL_GPUVertexAttribute vertexAttributes[3] = {
+        {0, 0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, offsetof(Vertex, position)},  // TEXCOORD0
+        {1, 0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, offsetof(Vertex, normal)},    // TEXCOORD1
+        {2, 0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, offsetof(Vertex, uv)}         // TEXCOORD2
+    };
+
+    SDL_GPUVertexInputState vertexInputState{
+        &vertBufferDesc,
+        1,
+        vertexAttributes,
+        3
+    };
+
+    // Rasterizer — backface culling for solid 3D
+    SDL_GPURasterizerState rasterizerState{
+        SDL_GPU_FILLMODE_FILL,
+        SDL_GPU_CULLMODE_BACK,             // was NONE for sprites
+        SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE, // was CLOCKWISE for sprites
+        0, 0, 0,
+        false, false,
+        0, 0
+    };
+
+    // Multisample
+    SDL_GPUMultisampleState multiSampleState{
+        SDL_GPU_SAMPLECOUNT_1,
+        0, false, false, 0, 0
+    };
+
+    // Stencil (unused)
+    SDL_GPUStencilOpState stencilState{
+        SDL_GPU_STENCILOP_KEEP,
+        SDL_GPU_STENCILOP_KEEP,
+        SDL_GPU_STENCILOP_KEEP,
+        SDL_GPU_COMPAREOP_ALWAYS
+    };
+
+    // Depth state — REAL depth testing enabled
+    SDL_GPUDepthStencilState depthStencilState{
+        SDL_GPU_COMPAREOP_LESS,  // was ALWAYS for sprites
+        stencilState,
+        stencilState,
+        0xFF,
+        0xFF,
+        true,   // depth_test_enabled  (was false)
+        true,   // depth_write_enabled (was false)
+        false,  // stencil_test_enabled
+        0, 0, 0
+    };
+
+    // Blend — opaque (no blending needed for solid cube)
+    SDL_GPUColorTargetBlendState blendState{
+        SDL_GPU_BLENDFACTOR_ONE,               // src_color_blendfactor
+        SDL_GPU_BLENDFACTOR_ZERO,              // dst_color_blendfactor
+        SDL_GPU_BLENDOP_ADD,                   // color_blend_op
+        SDL_GPU_BLENDFACTOR_ONE,               // src_alpha_blendfactor
+        SDL_GPU_BLENDFACTOR_ZERO,              // dst_alpha_blendfactor
+        SDL_GPU_BLENDOP_ADD,                   // alpha_blend_op
+        SDL_GPU_COLORCOMPONENT_R | SDL_GPU_COLORCOMPONENT_G |
+            SDL_GPU_COLORCOMPONENT_B | SDL_GPU_COLORCOMPONENT_A,
+        false,  // enable_blend  (opaque, no blending)
+        false,  // enable_color_write_mask (wait, check this)
+        0, 0
+    };
+
+    SDL_GPUColorTargetDescription colorTargetDesc{
+        SDL_GetGPUSwapchainTextureFormat(device, targetWindow),
+        blendState
+    };
+
+    SDL_GPUGraphicsPipelineTargetInfo targetInfo{
+        &colorTargetDesc,
+        1,
+        SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
+        true,   // has_depth_stencil_target (need this for depth!)
+        0, 0, 0
+    };
+
+    SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo{
+        vertShader,
+        fragShader,
+        vertexInputState,                    // was {} for sprites
+        SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+        rasterizerState,
+        multiSampleState,
+        depthStencilState,
+        targetInfo,
+        0
+    };
+
+    meshPipeline = SDL_CreateGPUGraphicsPipeline(device, &pipelineCreateInfo);
+    if (!meshPipeline) {
+        SDL_Log("Failed to create mesh pipeline: %s", SDL_GetError());
+        SDL_ReleaseGPUShader(device, vertShader);
+        SDL_ReleaseGPUShader(device, fragShader);
         return false;
     }
-	SDL_ReleaseGPUShader(device, vertexShader);
-    SDL_ReleaseGPUShader(device, fragmentShader);
+
+    SDL_ReleaseGPUShader(device, vertShader);
+    SDL_ReleaseGPUShader(device, fragShader);
+    SDL_Log("=== createMeshPipeline SUCCESS ===");
     return true;
+}
+void RenderSystem::renderCube(SDL_GPUCommandBuffer* cmd) {
+    SDL_GPUTexture* swapchainTex;
+    Uint32 w, h;
+    if (!SDL_WaitAndAcquireGPUSwapchainTexture(cmd, targetWindow, &swapchainTex, &w, &h))
+        return;
+	camera.aspectRatio = (float)w / (float)h;
+    // Create depth texture if needed
+    static SDL_GPUTexture* depthTexture = nullptr;
+    static Uint32 depthW = 0, depthH = 0;
+    if (!depthTexture || depthW != w || depthH != h) {
+        if (depthTexture) SDL_ReleaseGPUTexture(device, depthTexture);
+        SDL_GPUTextureCreateInfo depthInfo{};
+        depthInfo.type = SDL_GPU_TEXTURETYPE_2D;
+        depthInfo.format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT;
+        depthInfo.width = w;
+        depthInfo.height = h;
+        depthInfo.layer_count_or_depth = 1;
+        depthInfo.num_levels = 1;
+        depthInfo.usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
+        depthTexture = SDL_CreateGPUTexture(device, &depthInfo);
+        depthW = w; depthH = h;
+    }
+
+    SDL_GPUColorTargetInfo colorTarget{};
+    colorTarget.texture = swapchainTex;
+    colorTarget.clear_color = {0.1f, 0.1f, 0.2f, 1.0f};
+    colorTarget.load_op = SDL_GPU_LOADOP_CLEAR;
+    colorTarget.store_op = SDL_GPU_STOREOP_STORE;
+
+    SDL_GPUDepthStencilTargetInfo depthTarget{};
+    depthTarget.texture = depthTexture;
+    depthTarget.clear_depth = 1.0f;
+    depthTarget.load_op = SDL_GPU_LOADOP_CLEAR;
+    depthTarget.store_op = SDL_GPU_STOREOP_DONT_CARE;
+    depthTarget.stencil_load_op = SDL_GPU_LOADOP_DONT_CARE;
+    depthTarget.stencil_store_op = SDL_GPU_STOREOP_DONT_CARE;
+
+    SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(cmd, &colorTarget, 1, &depthTarget);
+    if (!pass) return;
+
+	if (!meshPipeline) {
+		SDL_Log("ERROR: meshPipeline is null! Pipeline was not created.");
+		SDL_EndGPURenderPass(pass);
+		return;
+	}
+    SDL_BindGPUGraphicsPipeline(pass, meshPipeline);
+
+    // Push MVP uniforms (matches your HLSL: register(b0, space1))
+    struct { glm::mat4 model; glm::mat4 view; glm::mat4 projection; } uniforms;
+    uniforms.model = glm::mat4(1.0f);
+    uniforms.view = camera.getViewMatrix();
+    uniforms.projection = camera.getProjectionMatrix();
+    SDL_PushGPUVertexUniformData(cmd, 0, &uniforms, sizeof(uniforms));
+
+    // Bind vertex & index buffers
+    SDL_GPUBufferBinding vbBind{ testCube.vertexBuffer, 0 };
+    SDL_BindGPUVertexBuffers(pass, 0, &vbBind, 1);
+	SDL_GPUBufferBinding ibBind{ testCube.indexBuffer, 0 };
+	SDL_BindGPUIndexBuffer(pass, &ibBind, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+
+    SDL_DrawGPUIndexedPrimitives(pass, (Uint32)testCube.indices.size(), 1, 0, 0, 0);
+    SDL_EndGPURenderPass(pass);
 }
