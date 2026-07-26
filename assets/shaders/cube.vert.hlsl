@@ -17,6 +17,7 @@ struct VertexOutput {
     float4 position : SV_POSITION;
     float3 normal   : TEXCOORD0;
     float3 worldPos : TEXCOORD1;
+    float2 uv       : TEXCOORD2;
 };
 
 
@@ -40,6 +41,6 @@ VertexOutput main(VertexInput input) {
     // Transform normal (assumes no non-uniform scale)
     output.normal = mul((float3x3)ubo.model, input.normal);
     output.worldPos = worldPos.xyz;
-    
+    output.uv = input.uv;
     return output;
 }

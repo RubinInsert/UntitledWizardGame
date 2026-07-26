@@ -1,5 +1,7 @@
 #include "engine/render/RenderSystem.hpp"
 #include "engine/render/ModelLoader.hpp"
+#include "engine/render/Texture.hpp"
+#include "engine/core/Engine.h"
 RenderSystem::RenderSystem() {
     // Leave empty for now or initialize pointers to nullptr
 }
@@ -13,12 +15,21 @@ RenderSystem::~RenderSystem() {
 void RenderSystem::setGPUDevice(SDL_GPUDevice* device) { this->device = device; }
 void RenderSystem::setTargetWindow(SDL_Window* window) { targetWindow = window; }
 
-void RenderSystem::initResources(int width, int height) {
+void RenderSystem::initResources(int width, int height, Engine& eng) {
+    engine = &eng;
     SDL_GPUCommandBuffer* setupCmd = SDL_AcquireGPUCommandBuffer(device);
     testCube = ModelLoader::Load("assets/models/Barrel.fbx");
     testCube.upload(device, setupCmd);
     SDL_SubmitGPUCommandBuffer(setupCmd);
     if (!createMeshPipeline()) return;
+    
+    // Create sampler with pixelated filtering
+    SDL_GPUSamplerCreateInfo sampInfo{};
+    sampInfo.min_filter = SDL_GPU_FILTER_NEAREST;
+    sampInfo.mag_filter = SDL_GPU_FILTER_NEAREST;
+    sampInfo.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST;
+    nearestSampler = SDL_CreateGPUSampler(device, &sampInfo);
+
     resourcesInitialized = true;
 }
 
@@ -115,7 +126,7 @@ bool RenderSystem::createMeshPipeline() {
 
     SDL_GPUShader* vertShader = LoadShader(device, "cube.vert", 0, 1, 0, 0);
     if (!vertShader) return false;
-    SDL_GPUShader* fragShader = LoadShader(device, "cube.frag", 0, 1, 0, 0);
+    SDL_GPUShader* fragShader = LoadShader(device, "cube.frag", 1, 1, 0, 0);
     if (!fragShader) return false;
 
     // Vertex buffer description — one stream of interleaved Vertex structs
@@ -300,6 +311,10 @@ void RenderSystem::renderCube(SDL_GPUCommandBuffer* cmd) {
     SDL_BindGPUVertexBuffers(pass, 0, &vbBind, 1);
 	SDL_GPUBufferBinding ibBind{ testCube.indexBuffer, 0 };
 	SDL_BindGPUIndexBuffer(pass, &ibBind, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+
+    Texture* tex = engine->getAssetManager().getTexture("assets/textures/barrel_diffuse.png");
+    SDL_GPUTextureSamplerBinding texBind{ tex->get(), nearestSampler };
+    SDL_BindGPUFragmentSamplers(pass, 0, &texBind, 1);
 
     SDL_DrawGPUIndexedPrimitives(pass, (Uint32)testCube.indices.size(), 1, 0, 0, 0);
     SDL_EndGPURenderPass(pass);

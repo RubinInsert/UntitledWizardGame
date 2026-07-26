@@ -36,7 +36,7 @@ bool Engine::Init() {
         assetManager.Init();
         renderSystem.setGPUDevice(gpuDevice);
         renderSystem.setTargetWindow(windowManager.getWindow());
-        renderSystem.initResources(screenWidth, screenHeight);
+        renderSystem.initResources(screenWidth, screenHeight, *this); 
     }
     return success;
 }

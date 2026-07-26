@@ -54,7 +54,23 @@ Mesh ModelLoader::Load(const std::string& path) {
             mesh.indices.push_back(face.mIndices[j]);
         }
     }
-    
+
+    // Texture loading
+    if (scene->mNumMaterials > 0 && aiMesh->mMaterialIndex < scene->mNumMaterials) {
+        aiMaterial* aiMat = scene->mMaterials[aiMesh->mMaterialIndex];
+        // Try to get diffuse texture path
+        aiString texPath;
+        if (aiMat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == AI_SUCCESS) {
+            SDL_Log("Testing testing: ", texPath.C_Str());
+            mesh.material.diffuseTexturePath = texPath.C_Str();
+            SDL_Log("  Texture: %s", texPath.C_Str());
+        }
+        
+        // Get fallback diffuse color
+        aiColor3D color(1.0f, 1.0f, 1.0f);
+        aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
+        mesh.material.diffuseColor = {color.r, color.g, color.b};
+    }
     SDL_Log("Loaded model: %s (%zu vertices, %zu indices)", 
             path.c_str(), mesh.vertices.size(), mesh.indices.size());
     
