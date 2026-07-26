@@ -1,5 +1,5 @@
 #include "engine/render/RenderSystem.hpp"
-#include <SDL3_shadercross/SDL_shadercross.h>
+#include "engine/render/ModelLoader.hpp"
 RenderSystem::RenderSystem() {
     // Leave empty for now or initialize pointers to nullptr
 }
@@ -15,7 +15,7 @@ void RenderSystem::setTargetWindow(SDL_Window* window) { targetWindow = window; 
 
 void RenderSystem::initResources(int width, int height) {
     SDL_GPUCommandBuffer* setupCmd = SDL_AcquireGPUCommandBuffer(device);
-    testCube = Mesh::createCube();
+    testCube = ModelLoader::Load("assets/models/Barrel.fbx");
     testCube.upload(device, setupCmd);
     SDL_SubmitGPUCommandBuffer(setupCmd);
     if (!createMeshPipeline()) return;
@@ -279,7 +279,7 @@ void RenderSystem::renderCube(SDL_GPUCommandBuffer* cmd) {
 
     // Push MVP uniforms (matches your HLSL: register(b0, space1))
     struct { glm::mat4 model; glm::mat4 view; glm::mat4 projection; } uniforms;
-    uniforms.model = glm::mat4(1.0f);
+    uniforms.model = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f));
     uniforms.view = camera.getViewMatrix();
     uniforms.projection = camera.getProjectionMatrix();
     SDL_PushGPUVertexUniformData(cmd, 0, &uniforms, sizeof(uniforms));

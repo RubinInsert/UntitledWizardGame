@@ -27,11 +27,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # 4. Find Third Party Libraries
  find_package(SDL3 CONFIG REQUIRED)
- find_package(SDL3_shadercross CONFIG REQUIRED)
+ #find_package(SDL3_shadercross CONFIG REQUIRED)
  find_package(SDL3_image REQUIRED)
  find_package(EnTT REQUIRED)
  find_package(nlohmann_json CONFIG REQUIRED)
-
+ find_package(assimp CONFIG REQUIRED)
 # Include additional CMake modules
 include(cmake/Shaders.cmake) # Custom module to handle shader compilation
 
@@ -53,10 +53,12 @@ add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 # SDL3::SDL3main is required for the entry point (the main function)
 target_link_libraries(${PROJECT_NAME} PRIVATE
                     SDL3::SDL3
-                    SDL3_shadercross::SDL3_shadercross
+                    #SDL3_shadercross::SDL3_shadercross
                     SDL3_image::SDL3_image
                     EnTT::EnTT
-                    nlohmann_json::nlohmann_json)
+                    nlohmann_json::nlohmann_json
+                    assimp::assimp
+                    )
 
 # 7. Include the src folder so headers are easy to find later
 target_include_directories(${PROJECT_NAME} PRIVATE 

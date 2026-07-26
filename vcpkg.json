@@ -3,9 +3,9 @@
   "version-string": "0.1.0",
   "dependencies": [
     "sdl3",
-    "sdl3-shadercross",
     "directx-dxc",
     "glm",
+    "assimp",
     {
       "name": "sdl3-image",
       "features": [ "png", "jpeg" ]
