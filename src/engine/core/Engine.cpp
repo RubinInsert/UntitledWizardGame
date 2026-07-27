@@ -34,6 +34,7 @@ bool Engine::Init() {
         // Link Newly created GPU device to Systems
         assetManager.setGPUDevice(gpuDevice);
         assetManager.Init();
+        assetManager.resolveRegistry();
         renderSystem.setGPUDevice(gpuDevice);
         renderSystem.setTargetWindow(windowManager.getWindow());
         renderSystem.initResources(screenWidth, screenHeight, *this); 

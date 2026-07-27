@@ -6,7 +6,9 @@
 #include <unordered_map>
 #include <memory>
 #include "engine/render/SpriteSheet.hpp"
+#include "engine/render/Mesh.hpp"
 #include "engine/render/Texture.hpp"
+#include <nlohmann/json.hpp>
 class AssetManager {
 public:
     AssetManager(SDL_GPUDevice* device);
@@ -32,13 +34,29 @@ public:
     /// @return A non-owning, observe-only pointer to the asset's SpriteSheet
     SpriteSheet* getSpriteSheet(const std::string& filePath, float frameWidth, float frameHeight, int cols, int rows, float marginX, float marginY, float spacingX, float spacingY);
 
+    /// @brief Retrieves a Model from the cache, loading it from the disk if not present in cache.
+    /// @param filePath 
+    /// @return A non-owning, observe-only pointer to the asset's mesh
+    Mesh* getModel(const std::string& filePath);
+
+    void resolveRegistry(const std::string& registryPath = "assets/assets.json");
     void setGPUDevice(SDL_GPUDevice* device);
     void Clear();
 
+    struct ModelEntry {
+    std::string meshPath;
+    std::string albedo;
+    std::string normal;
+    std::string roughness;
+    };
+    
 private:
     SDL_GPUDevice* device;
     // Library of loaded textures owned solely by the AssetManager
     mutable std::unordered_map<std::string, std::unique_ptr<Texture>> mTextures;
+
+    mutable std::unordered_map<std::string, std::unique_ptr<Mesh>> mMeshes;
+    mutable std::unordered_map<std::string, ModelEntry> mModelRegistry;
     // Library of loaded SpriteSheet owned solely by the AssetManager. Utilizes unique pointer to avoid pointer invalidation in unordered map
     mutable std::unordered_map<std::string, std::unique_ptr<SpriteSheet>> mSpriteSheets;
 
@@ -51,5 +69,7 @@ private:
     Uint32 mCurrentY = 2;
     Uint32 mMaxRowHeight = 0;
     const Uint32 PADDING = 2;
+
+    Mesh loadMeshFromFile(const std::string& path);
 };
 #endif

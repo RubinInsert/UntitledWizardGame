@@ -1,0 +1,8 @@
+{
+  "barrel": {
+    "mesh": "models/barrel/Barrel.fbx",
+    "albedo": "textures/Barrel_Tex.png",
+    "normal": "",
+    "roughness": ""
+  }
+}

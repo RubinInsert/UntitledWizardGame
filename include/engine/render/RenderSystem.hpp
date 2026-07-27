@@ -36,7 +36,7 @@ class RenderSystem {
         SDL_GPUShader* meshVertexShader = nullptr;
         SDL_GPUShader* meshFragmentShader = nullptr;
         SDL_GPUSampler* nearestSampler = nullptr;
-        Mesh testCube;
+        Mesh* testCube;
         Camera camera;
 
         SDL_GPUBuffer* meshUniformBuffer = nullptr;

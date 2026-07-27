@@ -1,5 +1,4 @@
 #include "engine/render/RenderSystem.hpp"
-#include "engine/render/ModelLoader.hpp"
 #include "engine/render/Texture.hpp"
 #include "engine/core/Engine.h"
 RenderSystem::RenderSystem() {
@@ -18,9 +17,7 @@ void RenderSystem::setTargetWindow(SDL_Window* window) { targetWindow = window; 
 void RenderSystem::initResources(int width, int height, Engine& eng) {
     engine = &eng;
     SDL_GPUCommandBuffer* setupCmd = SDL_AcquireGPUCommandBuffer(device);
-    testCube = ModelLoader::Load("assets/models/Barrel.fbx");
-    testCube.upload(device, setupCmd);
-    SDL_SubmitGPUCommandBuffer(setupCmd);
+    testCube = engine->getAssetManager().getModel("barrel");
     if (!createMeshPipeline()) return;
     
     // Create sampler with pixelated filtering
@@ -307,15 +304,15 @@ void RenderSystem::renderCube(SDL_GPUCommandBuffer* cmd) {
 	lightData.cameraPos = glm::vec4(camera.position, 1.0f);
 	SDL_PushGPUFragmentUniformData(cmd, 0, &lightData, sizeof(lightData));
     // Bind vertex & index buffers
-    SDL_GPUBufferBinding vbBind{ testCube.vertexBuffer, 0 };
+    SDL_GPUBufferBinding vbBind{ testCube->vertexBuffer, 0 };
     SDL_BindGPUVertexBuffers(pass, 0, &vbBind, 1);
-	SDL_GPUBufferBinding ibBind{ testCube.indexBuffer, 0 };
+	SDL_GPUBufferBinding ibBind{ testCube->indexBuffer, 0 };
 	SDL_BindGPUIndexBuffer(pass, &ibBind, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-    Texture* tex = engine->getAssetManager().getTexture("assets/textures/barrel_diffuse.png");
+    Texture* tex = engine->getAssetManager().getTexture(testCube->material.diffuseTexturePath);
     SDL_GPUTextureSamplerBinding texBind{ tex->get(), nearestSampler };
     SDL_BindGPUFragmentSamplers(pass, 0, &texBind, 1);
 
-    SDL_DrawGPUIndexedPrimitives(pass, (Uint32)testCube.indices.size(), 1, 0, 0, 0);
+    SDL_DrawGPUIndexedPrimitives(pass, (Uint32)testCube->indices.size(), 1, 0, 0, 0);
     SDL_EndGPURenderPass(pass);
 }

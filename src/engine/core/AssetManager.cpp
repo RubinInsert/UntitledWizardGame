@@ -4,6 +4,12 @@
 #include <string>
 #include <stdexcept>
 #include <cstring>
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
+#include <fstream>
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
 AssetManager::AssetManager(SDL_GPUDevice* device) : device{device} {
 }
 
@@ -27,6 +33,63 @@ void AssetManager::Init() {
     if (!mMasterAtlas) {
         throw std::runtime_error("Failed to initialize Master Texture Atlas!");
     }
+}
+
+void AssetManager::resolveRegistry(const std::string& registryPath) {
+    std::string absolutePath = std::string(SDL_GetBasePath()) + registryPath;
+    
+    std::ifstream file(absolutePath);
+    if (!file.is_open()) {
+        SDL_Log("Failed to open registry: %s", absolutePath.c_str());
+        return;
+    }
+    
+    json registry;
+    try {
+        file >> registry;
+    } catch (const json::parse_error& e) {
+        SDL_Log("Registry parse error in %s: %s", registryPath.c_str(), e.what());
+        return;
+    }
+    
+    for (auto& [id, entry] : registry.items()) {
+        ModelEntry model;
+        model.meshPath  = entry.value("mesh", "");
+        model.albedo    = entry.value("albedo", "");
+        model.normal    = entry.value("normal", "");
+        model.roughness = entry.value("roughness", "");
+        
+        mModelRegistry[id] = std::move(model);
+        SDL_Log("Registered model '%s' -> %s", id.c_str(), model.meshPath.c_str());
+    }
+}
+Mesh* AssetManager::getModel(const std::string& assetId) {
+    // Check cache
+    auto it = mMeshes.find(assetId);
+    if (it != mMeshes.end()) return it->second.get();
+    
+    // Look up in registry
+    auto regIt = mModelRegistry.find(assetId);
+    if (regIt == mModelRegistry.end()) {
+        SDL_Log("Unknown model asset: %s", assetId.c_str());
+        return nullptr;
+    }
+    
+    const ModelEntry& entry = regIt->second;
+    
+    // Load the mesh
+    auto mesh = std::make_unique<Mesh>(loadMeshFromFile("assets/" + entry.meshPath));
+    
+    // Resolve the texture path from the registry
+    mesh->material.diffuseTexturePath = "assets/" + entry.albedo;
+    
+    // Upload to GPU
+    SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(device);
+    mesh->upload(device, cmd);
+    SDL_SubmitGPUCommandBuffer(cmd);
+    
+    auto result = mMeshes.emplace(assetId, std::move(mesh));
+    return result.first->second.get();
 }
 Texture* AssetManager::getTexture(const std::string& filePath) {
     auto iterator = mTextures.find(filePath);
@@ -117,4 +180,77 @@ SpriteSheet* AssetManager::getSpriteSheet(const std::string& filePath,
 
 void AssetManager::setGPUDevice(SDL_GPUDevice* device) {
      this->device = device;
+}
+
+Mesh AssetManager::loadMeshFromFile(const std::string& path) {
+    Assimp::Importer importer;
+    
+    // Import with triangulation + generate normals if missing
+    const aiScene* scene = importer.ReadFile(path,
+        aiProcess_Triangulate |
+        aiProcess_GenSmoothNormals |
+        aiProcess_FlipUVs
+    );
+    
+    if (!scene || !scene->mRootNode || !scene->mNumMeshes) {
+        SDL_Log("Failed to load model: %s", importer.GetErrorString());
+        return Mesh::createCube(); // fallback to cubes
+    }
+    
+    // Take the first mesh for now (expand later)
+    aiMesh* aiMesh = scene->mMeshes[0];
+    Mesh mesh;
+    
+    // Copy vertices
+    mesh.vertices.reserve(aiMesh->mNumVertices);
+    for (unsigned int i = 0; i < aiMesh->mNumVertices; ++i) {
+        Vertex vert;
+        vert.position.x = aiMesh->mVertices[i].x;
+        vert.position.y = aiMesh->mVertices[i].y;
+        vert.position.z = aiMesh->mVertices[i].z;
+        
+        if (aiMesh->HasNormals()) {
+            vert.normal.x = aiMesh->mNormals[i].x;
+            vert.normal.y = aiMesh->mNormals[i].y;
+            vert.normal.z = aiMesh->mNormals[i].z;
+        }
+        
+        if (aiMesh->HasTextureCoords(0)) {
+            vert.uv.x = aiMesh->mTextureCoords[0][i].x;
+            vert.uv.y = aiMesh->mTextureCoords[0][i].y;
+        } else {
+            vert.uv = {0.0f, 0.0f};
+        }
+        
+        mesh.vertices.push_back(vert);
+    }
+    
+    // Copy indices
+    for (unsigned int i = 0; i < aiMesh->mNumFaces; ++i) {
+        aiFace& face = aiMesh->mFaces[i];
+        for (unsigned int j = 0; j < face.mNumIndices; ++j) {
+            mesh.indices.push_back(face.mIndices[j]);
+        }
+    }
+
+    // Texture loading
+    if (scene->mNumMaterials > 0 && aiMesh->mMaterialIndex < scene->mNumMaterials) {
+        aiMaterial* aiMat = scene->mMaterials[aiMesh->mMaterialIndex];
+        // Try to get diffuse texture path
+        aiString texPath;
+        if (aiMat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == AI_SUCCESS) {
+            SDL_Log("Testing testing: ", texPath.C_Str());
+            mesh.material.diffuseTexturePath = texPath.C_Str();
+            SDL_Log("  Texture: %s", texPath.C_Str());
+        }
+        
+        // Get fallback diffuse color
+        aiColor3D color(1.0f, 1.0f, 1.0f);
+        aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
+        mesh.material.diffuseColor = {color.r, color.g, color.b};
+    }
+    SDL_Log("Loaded model: %s (%zu vertices, %zu indices)", 
+            path.c_str(), mesh.vertices.size(), mesh.indices.size());
+    
+    return mesh;
 }
