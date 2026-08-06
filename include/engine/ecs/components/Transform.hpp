@@ -1,10 +1,8 @@
 #ifndef TRANSFORM_H
 #define TRANSFORM_H
-#include <SDL3/SDL.h>
-#include <string>
+#include <glm/glm.hpp>
 struct Transform {
-    SDL_FPoint position{};
-    SDL_FPoint size{};
-    SDL_FPoint previousPosition{}; // Stored for Collision logic
+    glm::vec3 position{};
+    glm::vec3 scale{};
 };
 #endif

@@ -17,7 +17,7 @@ void RenderSystem::setTargetWindow(SDL_Window* window) { targetWindow = window; 
 void RenderSystem::initResources(int width, int height, Engine& eng) {
     engine = &eng;
     SDL_GPUCommandBuffer* setupCmd = SDL_AcquireGPUCommandBuffer(device);
-    testCube = engine->getAssetManager().getModel("barrel");
+    Mesh* testBarrel = engine->getAssetManager().getModel("barrel");
     if (!createMeshPipeline()) return;
     
     // Create sampler with pixelated filtering
@@ -29,12 +29,72 @@ void RenderSystem::initResources(int width, int height, Engine& eng) {
 
     resourcesInitialized = true;
 }
-
+bool RenderSystem::SubmitMesh(Mesh* mesh, const Transform& transform) {
+    MeshRenderCommand mrc {
+        mesh,
+        transform
+    };
+    renderMeshBuffer.emplace_back(mrc);
+    return true;
+}
 void RenderSystem::render() {
 	if (!resourcesInitialized) return;
     SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(device);
     if(!cmd) return;
-    renderCube(cmd);
+    SDL_GPUTexture* swapchainTex;
+    Uint32 w, h;
+    if (!SDL_WaitAndAcquireGPUSwapchainTexture(cmd, targetWindow, &swapchainTex, &w, &h))
+        return;
+	camera.aspectRatio = (float)w / (float)h;
+    // Create depth texture if needed
+    static SDL_GPUTexture* depthTexture = nullptr;
+    static Uint32 depthW = 0, depthH = 0;
+    if (!depthTexture || depthW != w || depthH != h) {
+        if (depthTexture) SDL_ReleaseGPUTexture(device, depthTexture);
+        SDL_GPUTextureCreateInfo depthInfo{};
+        depthInfo.type = SDL_GPU_TEXTURETYPE_2D;
+        depthInfo.format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT;
+        depthInfo.width = w;
+        depthInfo.height = h;
+        depthInfo.layer_count_or_depth = 1;
+        depthInfo.num_levels = 1;
+        depthInfo.usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
+        depthTexture = SDL_CreateGPUTexture(device, &depthInfo);
+        depthW = w; depthH = h;
+    }
+
+    SDL_GPUColorTargetInfo colorTarget{};
+    colorTarget.texture = swapchainTex;
+    colorTarget.clear_color = {0.1f, 0.1f, 0.2f, 1.0f};
+    colorTarget.load_op = SDL_GPU_LOADOP_CLEAR;
+    colorTarget.store_op = SDL_GPU_STOREOP_STORE;
+
+    SDL_GPUDepthStencilTargetInfo depthTarget{};
+    depthTarget.texture = depthTexture;
+    depthTarget.clear_depth = 1.0f;
+    depthTarget.load_op = SDL_GPU_LOADOP_CLEAR;
+    depthTarget.store_op = SDL_GPU_STOREOP_DONT_CARE;
+    depthTarget.stencil_load_op = SDL_GPU_LOADOP_DONT_CARE;
+    depthTarget.stencil_store_op = SDL_GPU_STOREOP_DONT_CARE;
+
+    SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(cmd, &colorTarget, 1, &depthTarget);
+    if (!pass) return;
+
+	if (!meshPipeline) {
+		SDL_Log("ERROR: meshPipeline is null! Pipeline was not created.");
+		SDL_EndGPURenderPass(pass);
+		return;
+	}
+    SDL_BindGPUGraphicsPipeline(pass, meshPipeline);
+
+    glm::mat4 cameraViewMat = camera.getViewMatrix();
+    glm::mat4 projMat = camera.getProjectionMatrix();
+
+    for (const MeshRenderCommand& meshCmd : renderMeshBuffer) {
+        renderMesh(cmd, pass, meshCmd, cameraViewMat, projMat);
+    }
+    SDL_EndGPURenderPass(pass);
+    renderMeshBuffer.clear();
     SDL_SubmitGPUCommandBuffer(cmd);
 }
 
@@ -238,58 +298,15 @@ bool RenderSystem::createMeshPipeline() {
     SDL_Log("=== createMeshPipeline SUCCESS ===");
     return true;
 }
-void RenderSystem::renderCube(SDL_GPUCommandBuffer* cmd) {
-    SDL_GPUTexture* swapchainTex;
-    Uint32 w, h;
-    if (!SDL_WaitAndAcquireGPUSwapchainTexture(cmd, targetWindow, &swapchainTex, &w, &h))
-        return;
-	camera.aspectRatio = (float)w / (float)h;
-    // Create depth texture if needed
-    static SDL_GPUTexture* depthTexture = nullptr;
-    static Uint32 depthW = 0, depthH = 0;
-    if (!depthTexture || depthW != w || depthH != h) {
-        if (depthTexture) SDL_ReleaseGPUTexture(device, depthTexture);
-        SDL_GPUTextureCreateInfo depthInfo{};
-        depthInfo.type = SDL_GPU_TEXTURETYPE_2D;
-        depthInfo.format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT;
-        depthInfo.width = w;
-        depthInfo.height = h;
-        depthInfo.layer_count_or_depth = 1;
-        depthInfo.num_levels = 1;
-        depthInfo.usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
-        depthTexture = SDL_CreateGPUTexture(device, &depthInfo);
-        depthW = w; depthH = h;
-    }
-
-    SDL_GPUColorTargetInfo colorTarget{};
-    colorTarget.texture = swapchainTex;
-    colorTarget.clear_color = {0.1f, 0.1f, 0.2f, 1.0f};
-    colorTarget.load_op = SDL_GPU_LOADOP_CLEAR;
-    colorTarget.store_op = SDL_GPU_STOREOP_STORE;
-
-    SDL_GPUDepthStencilTargetInfo depthTarget{};
-    depthTarget.texture = depthTexture;
-    depthTarget.clear_depth = 1.0f;
-    depthTarget.load_op = SDL_GPU_LOADOP_CLEAR;
-    depthTarget.store_op = SDL_GPU_STOREOP_DONT_CARE;
-    depthTarget.stencil_load_op = SDL_GPU_LOADOP_DONT_CARE;
-    depthTarget.stencil_store_op = SDL_GPU_STOREOP_DONT_CARE;
-
-    SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(cmd, &colorTarget, 1, &depthTarget);
-    if (!pass) return;
-
-	if (!meshPipeline) {
-		SDL_Log("ERROR: meshPipeline is null! Pipeline was not created.");
-		SDL_EndGPURenderPass(pass);
-		return;
-	}
-    SDL_BindGPUGraphicsPipeline(pass, meshPipeline);
-
+void RenderSystem::renderMesh(SDL_GPUCommandBuffer* cmd, SDL_GPURenderPass* pass, const MeshRenderCommand& meshCmd, const glm::mat4& viewMatrix, const glm::mat4& projMatrix) {
     // Push MVP uniforms (matches your HLSL: register(b0, space1))
     struct { glm::mat4 model; glm::mat4 view; glm::mat4 projection; } uniforms;
-    uniforms.model = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f));
-    uniforms.view = camera.getViewMatrix();
-    uniforms.projection = camera.getProjectionMatrix();
+    // uniforms.model = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f));
+    uniforms.model = glm::mat4(1.0f);
+    uniforms.model = glm::translate(uniforms.model, meshCmd.transform.position);
+    uniforms.model = glm::scale(uniforms.model, meshCmd.transform.scale);  
+    uniforms.view = viewMatrix;
+    uniforms.projection = projMatrix;
     SDL_PushGPUVertexUniformData(cmd, 0, &uniforms, sizeof(uniforms));
 
 	struct LightGPU {
@@ -304,15 +321,15 @@ void RenderSystem::renderCube(SDL_GPUCommandBuffer* cmd) {
 	lightData.cameraPos = glm::vec4(camera.position, 1.0f);
 	SDL_PushGPUFragmentUniformData(cmd, 0, &lightData, sizeof(lightData));
     // Bind vertex & index buffers
-    SDL_GPUBufferBinding vbBind{ testCube->vertexBuffer, 0 };
+    SDL_GPUBufferBinding vbBind{ meshCmd.mesh->vertexBuffer, 0 };
     SDL_BindGPUVertexBuffers(pass, 0, &vbBind, 1);
-	SDL_GPUBufferBinding ibBind{ testCube->indexBuffer, 0 };
+	SDL_GPUBufferBinding ibBind{ meshCmd.mesh->indexBuffer, 0 };
 	SDL_BindGPUIndexBuffer(pass, &ibBind, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-    Texture* tex = engine->getAssetManager().getTexture(testCube->material.diffuseTexturePath);
+    Texture* tex = engine->getAssetManager().getTexture(meshCmd.mesh->material.diffuseTexturePath);
     SDL_GPUTextureSamplerBinding texBind{ tex->get(), nearestSampler };
     SDL_BindGPUFragmentSamplers(pass, 0, &texBind, 1);
 
-    SDL_DrawGPUIndexedPrimitives(pass, (Uint32)testCube->indices.size(), 1, 0, 0, 0);
-    SDL_EndGPURenderPass(pass);
+    SDL_DrawGPUIndexedPrimitives(pass, (Uint32)meshCmd.mesh->indices.size(), 1, 0, 0, 0);
+    
 }

@@ -9,7 +9,6 @@
 #include "game/core/CameraSystem.hpp"
 #include "engine/ecs/components/Animation.hpp"
 #include "engine/ecs/components/AnimationSequence.hpp"
-#include "game/world/MapLoader.hpp"
 #include "game/player/PlayerAnims.hpp"
 #include "engine/render/DebugDrawer.hpp"
 #include "engine/render/Texture.hpp"
@@ -20,29 +19,30 @@ Game::Game(Engine& engine)
     createScene();
 }
 void Game::createScene() {
-            std::string imagePath {"assets/snail.png"};
-            std::string playerAssetPath {"assets/magician.png"};
-            player = registry.create();
-            // Load texture from asset manager
-            Texture* texture = engine.getAssetManager().getTexture(playerAssetPath);
-            float width = texture->width, height = texture->height;
+            // std::string imagePath {"assets/snail.png"};
+            // std::string playerAssetPath {"assets/magician.png"};
+            // player = registry.create();
+            // Mesh* testBarrel = engine->getAssetManager().getModel("barrel");
+            // // Load texture from asset manager
+            // Texture* texture = engine.getAssetManager().getTexture(playerAssetPath);
+            // float width = texture->width, height = texture->height;
             
-            // Choose frame from sprite
-            float frameWidth = width / 8.f;
-            float frameHeight = height / 8.f;
-            // Create sprite component with loaded texture
-            SpriteSheet* spriteSheet = engine.getAssetManager().getSpriteSheet("assets/male_unarmored.png", 128, 128, 8, 8, 64, 64, 128, 128);
-            registry.emplace<Sprite>(player, Sprite{spriteSheet, 16});  // frame 0
+            // // Choose frame from sprite
+            // float frameWidth = width / 8.f;
+            // float frameHeight = height / 8.f;
+            // // Create sprite component with loaded texture
+            // SpriteSheet* spriteSheet = engine.getAssetManager().getSpriteSheet("assets/male_unarmored.png", 128, 128, 8, 8, 64, 64, 128, 128);
+            // registry.emplace<Sprite>(player, Sprite{spriteSheet, 16});  // frame 0
             
-            // Create transform component
-            registry.emplace<Transform>(player, Transform{SDL_FPoint{0.f, 0.f}, SDL_FPoint{0.75f, 0.75f}});
-            registry.emplace<Velocity>(player, Velocity{SDL_FPoint{0.f, 0.f}});
-            registry.emplace<MovementStats>(player, MovementStats{5.f});
-            registry.emplace<Animation>(player, 
-                PlayerAnims::IDLE_NORTH, // startFrame, frameCount, duration, loop
-                0.0f, // timer
-                0     // currentFrameOffset
-            );
+            // // Create transform component
+            // registry.emplace<Transform>(player, Transform{SDL_FPoint{0.f, 0.f}, SDL_FPoint{0.75f, 0.75f}});
+            // registry.emplace<Velocity>(player, Velocity{SDL_FPoint{0.f, 0.f}});
+            // registry.emplace<MovementStats>(player, MovementStats{5.f});
+            // registry.emplace<Animation>(player, 
+            //     PlayerAnims::IDLE_NORTH, // startFrame, frameCount, duration, loop
+            //     0.0f, // timer
+            //     0     // currentFrameOffset
+            // );
             // auto entity2 = registry.create();
             
             // // Load texture from asset manager
@@ -60,29 +60,18 @@ void Game::createScene() {
 
 
             // TILE MAP LOADING TESTING
-            // Load the map from Tiled JSON
-            worldMap = MapLoader::Load("assets/worldData/maps/map01.json", engine.getAssetManager(), registry);
+            // Load the map from Tiled JSO
             //Game::collisionLayer = loadedCollisionLayer;
 }
 
 void Game::update () {
     animatorSystem.update(registry, engine.getTimeManager().getDeltaTime());
     playerController.update(registry, player, engine.getInputManager(), engine.getTimeManager().getDeltaTime());
-    physics.update(registry, engine.getTimeManager().getDeltaTime());
-    collisions.update(registry, worldMap.tileMap);
     // If left mouse button is down, allow CameraSystem to handle dragging
     RenderSystem& renderSys = engine.getRenderSystem();
     if (engine.getInputManager().isMouseButtonDown(SDL_BUTTON_LEFT)) {
         cameraSystem.update(renderSys.getCamera(), engine.getInputManager());  // 3D camera
         return;
-    }
-    // Otherwise, follow the player transform if available
-    if (player != entt::null && registry.valid(player) && registry.all_of<Transform>(player)) {
-        const Transform& playerTransform = registry.get<Transform>(player);
-        cameraSystem.followPlayer(camera, playerTransform, engine.getTimeManager(), engine.getWorldSettings());
-    } else {
-        // fallback test target
-        cameraSystem.followPlayer(camera, Transform{SDL_FPoint{0.f, 0.f}, SDL_FPoint{5.f, 5.f}}, engine.getTimeManager(), engine.getWorldSettings());
     }
 }
 
@@ -91,6 +80,15 @@ void Game::shutdown() {
 }
 void Game::render(RenderSystem& renderSystem) {
     worldMap.tileMap.render(renderSystem, camera, engine.getWorldSettings());
+
+        // Quick test: load cached barrel and submit
+    Mesh* barrel = engine.getAssetManager().getModel("barrel");
+    if (barrel) {
+        Transform t;
+        t.position = glm::vec3(0.0f, 0.0f, 0.0f);
+        t.scale    = glm::vec3(0.005f);
+        renderSystem.SubmitMesh(barrel, t);
+    }
 }
 entt::registry& Game::getRegistry() {
     return registry;

@@ -194,7 +194,7 @@ Mesh AssetManager::loadMeshFromFile(const std::string& path) {
     
     if (!scene || !scene->mRootNode || !scene->mNumMeshes) {
         SDL_Log("Failed to load model: %s", importer.GetErrorString());
-        return Mesh::createCube(); // fallback to cubes
+        return loadMeshFromFile("assets/models/barrel/Barrel.fbx");
     }
     
     // Take the first mesh for now (expand later)
