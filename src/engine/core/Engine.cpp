@@ -42,7 +42,21 @@ bool Engine::Init() {
     return success;
 }
 int Engine::Run(Game& game) {
+            Uint64 lastTime = SDL_GetPerformanceCounter();
+            int frameCount = 0;
+            double fpsTimer = 0.0;
             while (inputManager.shouldQuit() == false) {
+                Uint64 now = SDL_GetPerformanceCounter();
+                double delta = double(now - lastTime) / SDL_GetPerformanceFrequency();
+                lastTime = now;
+                fpsTimer += delta;
+                frameCount++;
+
+                if (fpsTimer >= 1.0) {
+                    SDL_Log("FPS: %d", frameCount);
+                    frameCount = 0;
+                    fpsTimer = 0.0;
+                }
                 // Clear any previously drawn debug boxes
                // DebugDrawer::Clear();
                 // Update elapsed and delta times.

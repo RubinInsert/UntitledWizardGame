@@ -47,8 +47,11 @@ void RenderSystem::render() {
     if(!cmd) return;
     SDL_GPUTexture* swapchainTex;
     Uint32 w, h;
-    if (!SDL_WaitAndAcquireGPUSwapchainTexture(cmd, targetWindow, &swapchainTex, &w, &h))
+    if (!SDL_WaitAndAcquireGPUSwapchainTexture(cmd, targetWindow, &swapchainTex, &w, &h)) {
+        SDL_CancelGPUCommandBuffer(cmd);
         return;
+    }
+        
 	camera.aspectRatio = (float)w / (float)h;
     // Create depth texture if needed
     static SDL_GPUTexture* depthTexture = nullptr;
@@ -82,11 +85,15 @@ void RenderSystem::render() {
     depthTarget.stencil_store_op = SDL_GPU_STOREOP_DONT_CARE;
 
     SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(cmd, &colorTarget, 1, &depthTarget);
-    if (!pass) return;
+    if (!pass) {
+        SDL_CancelGPUCommandBuffer(cmd);
+        return;
+    }
 
 	if (!meshPipeline) {
 		SDL_Log("ERROR: meshPipeline is null! Pipeline was not created.");
 		SDL_EndGPURenderPass(pass);
+        SDL_CancelGPUCommandBuffer(cmd);
 		return;
 	}
     SDL_BindGPUGraphicsPipeline(pass, meshPipeline);

@@ -20,6 +20,28 @@ Game::Game(Engine& engine)
     createScene();
 }
 void Game::createScene() {
+        // Quick test: load cached barrel and submit
+    Mesh* barrelMesh = engine.getAssetManager().getModel("barrel");
+    entt::entity barrel = engine.getRegistry().create();
+    if (barrelMesh) {
+        Transform t;
+        t.position = glm::vec3(0.0f, 0.0f, 0.0f);
+        t.scale    = glm::vec3(0.005f);
+        engine.getRegistry().emplace<Transform>(barrel, t);
+        engine.getRegistry().emplace<MeshComponent>(barrel, MeshComponent{barrelMesh});
+        //renderSystem.SubmitMesh(barrel, t);
+    }
+
+    Mesh* groundMesh = engine.getAssetManager().getModel("plane");
+    entt::entity ground = engine.getRegistry().create();
+    if (groundMesh) {
+        Transform t;
+        t.position = glm::vec3(0.0f, 0.0f, 0.0f);
+        t.scale    = glm::vec3(1.0f);
+        engine.getRegistry().emplace<Transform>(ground, t);
+        engine.getRegistry().emplace<MeshComponent>(ground, MeshComponent{groundMesh});
+        //renderSystem.SubmitMesh(barrel, t);
+    }
             // std::string imagePath {"assets/snail.png"};
             // std::string playerAssetPath {"assets/magician.png"};
             // player = registry.create();
@@ -82,28 +104,7 @@ void Game::shutdown() {
 void Game::render(RenderSystem& renderSystem) {
     worldMap.tileMap.render(renderSystem, camera, engine.getWorldSettings());
 
-        // Quick test: load cached barrel and submit
-    Mesh* barrelMesh = engine.getAssetManager().getModel("barrel");
-    entt::entity barrel = engine.getRegistry().create();
-    if (barrelMesh) {
-        Transform t;
-        t.position = glm::vec3(0.0f, 0.0f, 0.0f);
-        t.scale    = glm::vec3(0.005f);
-        engine.getRegistry().emplace<Transform>(barrel, t);
-        engine.getRegistry().emplace<MeshComponent>(barrel, MeshComponent{barrelMesh});
-        //renderSystem.SubmitMesh(barrel, t);
-    }
-
-    Mesh* groundMesh = engine.getAssetManager().getModel("plane");
-    entt::entity ground = engine.getRegistry().create();
-    if (groundMesh) {
-        Transform t;
-        t.position = glm::vec3(0.0f, 0.0f, 0.0f);
-        t.scale    = glm::vec3(1.0f);
-        engine.getRegistry().emplace<Transform>(ground, t);
-        engine.getRegistry().emplace<MeshComponent>(ground, MeshComponent{groundMesh});
-        //renderSystem.SubmitMesh(barrel, t);
-    }
+   
 }
 const Camera& Game::getCamera() const {
     return camera;
