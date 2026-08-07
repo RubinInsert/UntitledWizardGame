@@ -22,6 +22,7 @@ class Engine {
         WorldSettings& getWorldSettings();
         int getScreenWidth();
         int getScreenHeight();
+        entt::registry& getRegistry();
     private:
         WindowManager windowManager;
         AssetManager assetManager;
@@ -30,6 +31,7 @@ class Engine {
         RenderSystem renderSystem;
         SpriteRenderer spriteRenderer;
         WorldSettings worldSettings;
+        entt::registry registry;
         int screenWidth;
         int screenHeight;
 };

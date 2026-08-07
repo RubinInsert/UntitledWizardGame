@@ -4,5 +4,11 @@
     "albedo": "textures/Barrel_Tex.png",
     "normal": "",
     "roughness": ""
+  },
+  "plane": {
+    "mesh": "models/plane/Plane.fbx",
+    "albedo": "",
+    "normal": "",
+    "roughness": ""
   }
 }

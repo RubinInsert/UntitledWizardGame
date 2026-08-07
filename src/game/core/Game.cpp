@@ -12,6 +12,7 @@
 #include "game/player/PlayerAnims.hpp"
 #include "engine/render/DebugDrawer.hpp"
 #include "engine/render/Texture.hpp"
+#include "engine/ecs/components/MeshComponent.hpp"
 #include <vector>
 Game::Game(Engine& engine)
     : engine(engine)
@@ -65,8 +66,8 @@ void Game::createScene() {
 }
 
 void Game::update () {
-    animatorSystem.update(registry, engine.getTimeManager().getDeltaTime());
-    playerController.update(registry, player, engine.getInputManager(), engine.getTimeManager().getDeltaTime());
+    animatorSystem.update(engine.getRegistry(), engine.getTimeManager().getDeltaTime());
+    playerController.update(engine.getRegistry(), player, engine.getInputManager(), engine.getTimeManager().getDeltaTime());
     // If left mouse button is down, allow CameraSystem to handle dragging
     RenderSystem& renderSys = engine.getRenderSystem();
     if (engine.getInputManager().isMouseButtonDown(SDL_BUTTON_LEFT)) {
@@ -82,16 +83,27 @@ void Game::render(RenderSystem& renderSystem) {
     worldMap.tileMap.render(renderSystem, camera, engine.getWorldSettings());
 
         // Quick test: load cached barrel and submit
-    Mesh* barrel = engine.getAssetManager().getModel("barrel");
-    if (barrel) {
+    Mesh* barrelMesh = engine.getAssetManager().getModel("barrel");
+    entt::entity barrel = engine.getRegistry().create();
+    if (barrelMesh) {
         Transform t;
         t.position = glm::vec3(0.0f, 0.0f, 0.0f);
         t.scale    = glm::vec3(0.005f);
-        renderSystem.SubmitMesh(barrel, t);
+        engine.getRegistry().emplace<Transform>(barrel, t);
+        engine.getRegistry().emplace<MeshComponent>(barrel, MeshComponent{barrelMesh});
+        //renderSystem.SubmitMesh(barrel, t);
     }
-}
-entt::registry& Game::getRegistry() {
-    return registry;
+
+    Mesh* groundMesh = engine.getAssetManager().getModel("plane");
+    entt::entity ground = engine.getRegistry().create();
+    if (groundMesh) {
+        Transform t;
+        t.position = glm::vec3(0.0f, 0.0f, 0.0f);
+        t.scale    = glm::vec3(1.0f);
+        engine.getRegistry().emplace<Transform>(ground, t);
+        engine.getRegistry().emplace<MeshComponent>(ground, MeshComponent{groundMesh});
+        //renderSystem.SubmitMesh(barrel, t);
+    }
 }
 const Camera& Game::getCamera() const {
     return camera;

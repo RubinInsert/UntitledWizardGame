@@ -57,7 +57,7 @@ int Engine::Run(Game& game) {
                 // SDL_RenderClear(windowManager.getRenderer());
                 
                 game.render(renderSystem);
-                spriteRenderer.render(game.getRegistry(), renderSystem, game.getCamera(), worldSettings);
+                spriteRenderer.render(registry, renderSystem, game.getCamera(), worldSettings);
                 renderSystem.render();
                 // Render additional game renders
                 // Render sprites through the sprite renderer
@@ -90,4 +90,7 @@ int Engine::getScreenWidth() {
 }
 int Engine::getScreenHeight() {
     return screenHeight;
+}
+entt::registry& Engine::getRegistry() {
+    return registry;
 }

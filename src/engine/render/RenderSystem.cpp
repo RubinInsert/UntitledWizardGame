@@ -1,6 +1,10 @@
 #include "engine/render/RenderSystem.hpp"
 #include "engine/render/Texture.hpp"
 #include "engine/core/Engine.h"
+#include <entt/entt.hpp>
+#include <engine/ecs/components/MeshComponent.hpp>
+#include <engine/ecs/components/Transform.hpp>
+
 RenderSystem::RenderSystem() {
     // Leave empty for now or initialize pointers to nullptr
 }
@@ -89,9 +93,11 @@ void RenderSystem::render() {
 
     glm::mat4 cameraViewMat = camera.getViewMatrix();
     glm::mat4 projMat = camera.getProjectionMatrix();
-
-    for (const MeshRenderCommand& meshCmd : renderMeshBuffer) {
-        renderMesh(cmd, pass, meshCmd, cameraViewMat, projMat);
+    auto view = engine->getRegistry().view<MeshComponent, Transform>();
+    for (auto entity : view) {
+        auto& meshComp = view.get<MeshComponent>(entity);
+        auto& transform = view.get<Transform>(entity);
+        renderMesh(cmd, pass, MeshRenderCommand {meshComp.mesh, transform}, cameraViewMat, projMat);
     }
     SDL_EndGPURenderPass(pass);
     renderMeshBuffer.clear();

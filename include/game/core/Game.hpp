@@ -15,7 +15,6 @@ class Game {
         void update();
         void shutdown();
         void render(RenderSystem& renderSystem);
-        entt::registry& getRegistry();
         const Camera& getCamera() const;
 
     private:
@@ -23,7 +22,7 @@ class Game {
         void updatePlayer(float deltaTime, const InputManager& input);
         void updateCamera(float deltaTime, const InputManager& input);
 
-    entt::registry registry;
+
     CameraSystem cameraSystem{};
     Camera camera{};
     PlayerController playerController;
