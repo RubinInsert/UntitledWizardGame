@@ -1,13 +1,19 @@
 {
   "barrel": {
-    "mesh": "models/barrel/Barrel.fbx",
+    "mesh": "models/barrel/Barrel.glb",
     "albedo": "textures/Barrel_Tex.png",
     "normal": "",
     "roughness": ""
   },
   "plane": {
-    "mesh": "models/plane/Plane.fbx",
+    "mesh": "models/plane/Plane.glb",
     "albedo": "",
+    "normal": "",
+    "roughness": ""
+  },
+  "sample_terrain": {
+    "mesh": "models/sample_terrain/sample_terrain.glb",
+    "albedo": "textures/debug/debug_terrain.png",
     "normal": "",
     "roughness": ""
   }

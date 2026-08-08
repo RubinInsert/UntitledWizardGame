@@ -11,6 +11,9 @@ void CameraSystem::update(Camera& camera, const InputManager& input) {
             float sensitivity = 0.2f;
             camera.orbit(delta.x * sensitivity, delta.y * sensitivity);
         }
+        if (input.isKeyDown(SDLK_KP_MINUS)) {
+            camera.position -= glm::vec3(0, 0, -0.1);
+        }
 }
 
 void CameraSystem::followPlayer(Camera& camera, const Transform& playerTransform, const TimeManager& time, const WorldSettings& worldSettings) {

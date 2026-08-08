@@ -25,14 +25,14 @@ void Game::createScene() {
     entt::entity barrel = engine.getRegistry().create();
     if (barrelMesh) {
         Transform t;
-        t.position = glm::vec3(0.0f, 0.0f, 0.0f);
-        t.scale    = glm::vec3(0.005f);
+        t.position = glm::vec3(0.0f, 1.0f, 0.0f);
+        t.scale    = glm::vec3(1.0f);
         engine.getRegistry().emplace<Transform>(barrel, t);
         engine.getRegistry().emplace<MeshComponent>(barrel, MeshComponent{barrelMesh});
         //renderSystem.SubmitMesh(barrel, t);
     }
 
-    Mesh* groundMesh = engine.getAssetManager().getModel("plane");
+    Mesh* groundMesh = engine.getAssetManager().getModel("sample_terrain");
     entt::entity ground = engine.getRegistry().create();
     if (groundMesh) {
         Transform t;
@@ -92,10 +92,7 @@ void Game::update () {
     playerController.update(engine.getRegistry(), player, engine.getInputManager(), engine.getTimeManager().getDeltaTime());
     // If left mouse button is down, allow CameraSystem to handle dragging
     RenderSystem& renderSys = engine.getRenderSystem();
-    if (engine.getInputManager().isMouseButtonDown(SDL_BUTTON_LEFT)) {
-        cameraSystem.update(renderSys.getCamera(), engine.getInputManager());  // 3D camera
-        return;
-    }
+    cameraSystem.update(renderSys.getCamera(), engine.getInputManager());  // 3D camera
 }
 
 void Game::shutdown() {

@@ -6,6 +6,7 @@
     "directx-dxc",
     "glm",
     "assimp",
+    "box3d",
     {
       "name": "sdl3-image",
       "features": [ "png", "jpeg" ]
