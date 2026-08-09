@@ -47,10 +47,18 @@ int Engine::Run(Game& game) {
             Uint64 lastTime = SDL_GetPerformanceCounter();
             int frameCount = 0;
             double fpsTimer = 0.0;
+            constexpr double kFixedTimeStep = 1.0 / 60.0;
+            double accumulator = 0.0;
+
             while (inputManager.shouldQuit() == false) {
+                
                 Uint64 now = SDL_GetPerformanceCounter();
                 double delta = double(now - lastTime) / SDL_GetPerformanceFrequency();
+                if (delta > 0.25) {
+                    delta = 0.25;
+                }
                 lastTime = now;
+                accumulator += delta;
                 fpsTimer += delta;
                 frameCount++;
 
@@ -67,6 +75,11 @@ int Engine::Run(Game& game) {
                 // Register inputs
                 inputManager.update();
 
+                while (accumulator >= kFixedTimeStep) {
+                    collisionSystem.Step(registry); // Runs b3World_Step(worldId, 1/60, 4)
+                    accumulator -= kFixedTimeStep;
+                }
+
                 game.update();
                 // Fill the surface white
                 // SDL_SetRenderDrawColor(windowManager.getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
@@ -82,7 +95,6 @@ int Engine::Run(Game& game) {
                 //DebugDrawer::DrawIsometric(windowManager.getRenderer(), game.getCamera(), worldSettings);
                 // Update the screen
                 //SDL_RenderPresent(windowManager.getRenderer());
-                collisionSystem.Step(registry);
             }
     return 0;
 }

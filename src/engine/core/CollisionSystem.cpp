@@ -12,7 +12,7 @@ void CollisionSystem::Init(entt::registry& registry) {
         registry.on_construct<CollisionSphereComponent>().connect<&CollisionSystem::RegisterObjectCollisionSphere>(this);
         registry.on_construct<CollisionCapsuleComponent>().connect<&CollisionSystem::RegisterObjectCollisionCapsule>(this);
         registry.on_construct<CollisionMeshComponent>().connect<&CollisionSystem::RegisterObjectCollisionMesh>(this);
-        
+
         registry.on_destroy<CollisionMeshComponent>().connect<&CollisionSystem::OnDestroyCollisionMesh>(this);
         registry.on_destroy<RigidBodyComponent>().connect<&CollisionSystem::OnDestroyRigidBody>(this);
 }
