@@ -12,7 +12,10 @@ void CameraSystem::update(Camera& camera, const InputManager& input) {
             camera.orbit(delta.x * sensitivity, delta.y * sensitivity);
         }
         if (input.isKeyDown(SDLK_KP_MINUS)) {
-            camera.position -= glm::vec3(0, 0, -0.1);
+            camera.zoom(1.02);
+        }
+        if (input.isKeyDown(SDLK_KP_PLUS) || input.isKeyDown(SDLK_EQUALS)) {
+            camera.zoom(0.98f); 
         }
 }
 

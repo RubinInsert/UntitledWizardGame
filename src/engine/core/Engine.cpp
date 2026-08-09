@@ -99,6 +99,9 @@ TimeManager& Engine::getTimeManager() {
 RenderSystem& Engine::getRenderSystem() {
     return renderSystem;
 }
+CollisionSystem& Engine::getCollisionSystem() {
+    return collisionSystem;
+}
 WorldSettings& Engine::getWorldSettings() {
     return worldSettings;
 }

@@ -33,7 +33,7 @@ void Game::createScene() {
         engine.getRegistry().emplace<Transform>(barrel, t);
         engine.getRegistry().emplace<MeshComponent>(barrel, MeshComponent{barrelMesh});
         engine.getRegistry().emplace<RigidBodyComponent>(barrel, RigidBodyComponent{BodyType::Dynamic});
-        engine.getRegistry().emplace<CollisionBoxComponent>(barrel, CollisionBoxComponent{barrelMesh->halfExtents});
+        engine.getRegistry().emplace<CollisionMeshComponent>(barrel, CollisionMeshComponent{barrelMesh});
         //renderSystem.SubmitMesh(barrel, t);
     }
 
@@ -41,14 +41,16 @@ void Game::createScene() {
     entt::entity ground = engine.getRegistry().create();
     if (groundMesh) {
         Transform t;
-        t.position = glm::vec3(0.0f, 0.0f, 0.0f);
+        t.position = glm::vec3(10.0f, 0.0f, 0.0f);
         t.scale    = glm::vec3(1.0f);
         engine.getRegistry().emplace<Transform>(ground, t);
         engine.getRegistry().emplace<MeshComponent>(ground, MeshComponent{groundMesh});
-        engine.getRegistry().emplace<CollisionBoxComponent>(ground, CollisionBoxComponent{groundMesh->halfExtents});
+        engine.getRegistry().emplace<CollisionMeshComponent>(ground, CollisionMeshComponent{groundMesh, false});
         
         //renderSystem.SubmitMesh(barrel, t);
     }
+
+    engine.getCollisionSystem().ApplyJump(engine.getRegistry(), barrel, 1.0f);
             // std::string imagePath {"assets/snail.png"};
             // std::string playerAssetPath {"assets/magician.png"};
             // player = registry.create();
