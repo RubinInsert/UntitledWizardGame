@@ -46,3 +46,26 @@ void Mesh::upload(SDL_GPUDevice* device, SDL_GPUCommandBuffer* cmd) {
     SDL_ReleaseGPUTransferBuffer(device, transferBuf);
     SDL_ReleaseGPUTransferBuffer(device, idxTransferBuf);
 }
+void Mesh::calculateAABB() {
+    if (vertices.empty()) {
+        aabbMin = glm::vec3(-0.5f);
+        aabbMax = glm::vec3(0.5f);
+        halfExtents = glm::vec3(0.5f);
+        center = glm::vec3(0.0f);
+        return;
+    }
+
+    aabbMin = glm::vec3(std::numeric_limits<float>::max());
+    aabbMax = glm::vec3(-std::numeric_limits<float>::max());
+
+    for (const auto& vertex : vertices) {
+        aabbMin = glm::min(aabbMin, vertex.position);
+        aabbMax = glm::max(aabbMax, vertex.position);
+    }
+
+    // Half-extents are half the total width/height/depth
+    halfExtents = (aabbMax - aabbMin) * 0.5f;
+
+    // Geometric center of the bounding box
+    center = (aabbMax + aabbMin) * 0.5f;
+}

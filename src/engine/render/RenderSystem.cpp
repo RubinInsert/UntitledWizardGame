@@ -315,10 +315,12 @@ void RenderSystem::renderMesh(SDL_GPUCommandBuffer* cmd, SDL_GPURenderPass* pass
     // Push MVP uniforms (matches your HLSL: register(b0, space1))
     struct { glm::mat4 model; glm::mat4 view; glm::mat4 projection; } uniforms;
     // uniforms.model = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f));
-    uniforms.model = glm::mat4(1.0f);
-    uniforms.model = glm::translate(uniforms.model, meshCmd.transform.position);
-    uniforms.model = glm::scale(uniforms.model, meshCmd.transform.scale);  
-    uniforms.view = viewMatrix;
+    glm::mat4 translation = glm::translate(glm::mat4(1.0f), meshCmd.transform.position);
+    glm::mat4 rotation    = glm::mat4_cast(meshCmd.transform.rotation); // Converts glm::quat to glm::mat4
+    glm::mat4 scale       = glm::scale(glm::mat4(1.0f), meshCmd.transform.scale);
+
+    uniforms.model      = translation * rotation * scale;
+    uniforms.view       = viewMatrix;
     uniforms.projection = projMatrix;
     SDL_PushGPUVertexUniformData(cmd, 0, &uniforms, sizeof(uniforms));
 

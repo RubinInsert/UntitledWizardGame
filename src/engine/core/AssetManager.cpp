@@ -88,6 +88,9 @@ Mesh* AssetManager::getModel(const std::string& assetId) {
     mesh->upload(device, cmd);
     SDL_SubmitGPUCommandBuffer(cmd);
     
+    // Calculate mesh extents on load
+    mesh->calculateAABB();
+
     auto result = mMeshes.emplace(assetId, std::move(mesh));
     return result.first->second.get();
 }

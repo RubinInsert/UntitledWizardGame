@@ -30,6 +30,13 @@ class Mesh {
 
         static Mesh createCube();
 
+        void calculateAABB();
+        glm::vec3 aabbMin{0.0f};
+        glm::vec3 aabbMax{0.0f};
+        glm::vec3 halfExtents{0.5f, 0.5f, 0.5f};
+        glm::vec3 center{0.0f};
+
+
 };
 
 #endif

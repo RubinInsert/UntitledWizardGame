@@ -37,7 +37,9 @@ bool Engine::Init() {
         assetManager.resolveRegistry();
         renderSystem.setGPUDevice(gpuDevice);
         renderSystem.setTargetWindow(windowManager.getWindow());
-        renderSystem.initResources(screenWidth, screenHeight, *this); 
+        renderSystem.initResources(screenWidth, screenHeight, *this);
+        
+        collisionSystem.Init(registry);
     }
     return success;
 }
@@ -80,6 +82,7 @@ int Engine::Run(Game& game) {
                 //DebugDrawer::DrawIsometric(windowManager.getRenderer(), game.getCamera(), worldSettings);
                 // Update the screen
                 //SDL_RenderPresent(windowManager.getRenderer());
+                collisionSystem.Step(registry);
             }
     return 0;
 }

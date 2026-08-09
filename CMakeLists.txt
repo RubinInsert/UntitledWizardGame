@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
 
+add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
+
+
 # Auto-bootstrap vcpkg if it's not ready
 if(WIN32)
     set(VCPKG_EXE "${CMAKE_SOURCE_DIR}/vcpkg/vcpkg.exe")
@@ -29,6 +32,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
  find_package(SDL3 CONFIG REQUIRED)
  #find_package(SDL3_shadercross CONFIG REQUIRED)
  find_package(SDL3_image REQUIRED)
+ find_package(box3d REQUIRED)
  find_package(EnTT REQUIRED)
  find_package(nlohmann_json CONFIG REQUIRED)
  find_package(assimp CONFIG REQUIRED)
@@ -58,6 +62,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
                     EnTT::EnTT
                     nlohmann_json::nlohmann_json
                     assimp::assimp
+                    box3d::box3d
                     )
 
 # 7. Include the src folder so headers are easy to find later

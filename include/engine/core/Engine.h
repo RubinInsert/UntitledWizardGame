@@ -8,6 +8,7 @@
 #include "engine/core/WorldSettings.hpp"
 #include <entt/entt.hpp>
 #include "engine/render/RenderSystem.hpp"
+#include "engine/core/CollisionSystem.hpp"
 class Game;
 class Engine {
     public:
@@ -29,6 +30,7 @@ class Engine {
         InputManager inputManager;
         TimeManager timeManager;
         RenderSystem renderSystem;
+        CollisionSystem collisionSystem;
         SpriteRenderer spriteRenderer;
         WorldSettings worldSettings;
         entt::registry registry;

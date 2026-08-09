@@ -13,6 +13,7 @@
 #include "engine/render/DebugDrawer.hpp"
 #include "engine/render/Texture.hpp"
 #include "engine/ecs/components/MeshComponent.hpp"
+#include "engine/ecs/components/PhysicsComponents.hpp"
 #include <vector>
 Game::Game(Engine& engine)
     : engine(engine)
@@ -25,10 +26,14 @@ void Game::createScene() {
     entt::entity barrel = engine.getRegistry().create();
     if (barrelMesh) {
         Transform t;
-        t.position = glm::vec3(0.0f, 1.0f, 0.0f);
+        t.position = glm::vec3(0.0f, 50.0f, 0.0f);
         t.scale    = glm::vec3(1.0f);
+        glm::vec3 eulerDegrees{30.0f, 0.0f, 0.0f};
+        t.rotation = glm::quat(glm::radians(eulerDegrees));
         engine.getRegistry().emplace<Transform>(barrel, t);
         engine.getRegistry().emplace<MeshComponent>(barrel, MeshComponent{barrelMesh});
+        engine.getRegistry().emplace<RigidBodyComponent>(barrel, RigidBodyComponent{BodyType::Dynamic});
+        engine.getRegistry().emplace<CollisionBoxComponent>(barrel, CollisionBoxComponent{barrelMesh->halfExtents});
         //renderSystem.SubmitMesh(barrel, t);
     }
 
@@ -40,6 +45,8 @@ void Game::createScene() {
         t.scale    = glm::vec3(1.0f);
         engine.getRegistry().emplace<Transform>(ground, t);
         engine.getRegistry().emplace<MeshComponent>(ground, MeshComponent{groundMesh});
+        engine.getRegistry().emplace<CollisionBoxComponent>(ground, CollisionBoxComponent{groundMesh->halfExtents});
+        
         //renderSystem.SubmitMesh(barrel, t);
     }
             // std::string imagePath {"assets/snail.png"};
