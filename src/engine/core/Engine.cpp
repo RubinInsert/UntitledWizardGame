@@ -86,7 +86,7 @@ int Engine::Run(IApplication& app) {
                 
                 app.OnRender();
                 //spriteRenderer.render(registry, renderSystem, app.getCamera(), worldSettings);
-                renderSystem.render();
+                
                 // Render additional app renders
                 // Render sprites through the sprite renderer
 

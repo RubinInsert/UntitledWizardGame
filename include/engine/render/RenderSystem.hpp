@@ -5,6 +5,7 @@
 #include "engine/render/Mesh.hpp"
 #include "Camera.hpp"
 #include "engine/ecs/components/Transform.hpp"
+#include "engine/render/RenderTarget.hpp"
 class Engine;
 
 struct Matrix4x4 {
@@ -27,6 +28,7 @@ class RenderSystem {
         void initResources(int width, int height, Engine& eng);
         // Rendering functions
         void render();
+        void renderToTarget(RenderTarget& target);
 
         Camera& getCamera() { return camera; }
         bool SubmitMesh(Mesh* mesh, const Transform& transform);
@@ -59,5 +61,11 @@ class RenderSystem {
         void updateCamera(float dt);  // optional orbit
         void init3DResources();
         void cleanup3DResources();
+
+        void internalRender(SDL_GPUCommandBuffer* cmd,
+                    SDL_GPURenderPass* pass,
+                    const glm::mat4& viewMatrix,
+                    const glm::mat4& projMatrix,
+                    int targetW, int targetH);
     };
 #endif

@@ -41,19 +41,83 @@ bool RenderSystem::SubmitMesh(Mesh* mesh, const Transform& transform) {
     renderMeshBuffer.emplace_back(mrc);
     return true;
 }
-void RenderSystem::render() {
-	if (!resourcesInitialized) return;
+// New public method — renders to an off-screen target
+void RenderSystem::renderToTarget(RenderTarget& target) {
+    if (!resourcesInitialized) return;
+
     SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(device);
-    if(!cmd) return;
+    if (!cmd) return;
+
+    // Prepare color + depth target info from the RenderTarget
+    SDL_GPUColorTargetInfo colorTarget{};
+    SDL_GPUDepthStencilTargetInfo depthTarget{};
+    target.getTargetInfo(colorTarget, depthTarget,
+                         0.1f, 0.1f, 0.2f, 1.0f); // clear color
+
+    SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(cmd, &colorTarget, 1, &depthTarget);
+    if (!pass) {
+        SDL_CancelGPUCommandBuffer(cmd);
+        return;
+    }
+
+    // Adjust camera aspect to match the render target, not the window
+    float originalAspect = camera.aspectRatio;
+    camera.aspectRatio = (float)target.getWidth() / (float)target.getHeight();
+
+    internalRender(cmd, pass,
+                   camera.getViewMatrix(),
+                   camera.getProjectionMatrix(),
+                   target.getWidth(), target.getHeight());
+
+    camera.aspectRatio = originalAspect; // restore
+
+    SDL_EndGPURenderPass(pass);
+    SDL_SubmitGPUCommandBuffer(cmd);
+}
+
+void RenderSystem::internalRender(SDL_GPUCommandBuffer* cmd,
+                                  SDL_GPURenderPass* pass,
+                                  const glm::mat4& viewMatrix,
+                                  const glm::mat4& projMatrix,
+                                  int /*targetW*/, int /*targetH*/) {
+    if (!meshPipeline) {
+        SDL_Log("ERROR: meshPipeline is null! Cannot render.");
+        SDL_EndGPURenderPass(pass);
+        return;
+    }
+    SDL_BindGPUGraphicsPipeline(pass, meshPipeline);
+
+    auto view = engine->getRegistry().view<MeshComponent, Transform>();
+    for (auto entity : view) {
+        auto& meshComp = view.get<MeshComponent>(entity);
+        auto& transform = view.get<Transform>(entity);
+        renderMesh(cmd, pass,
+                   MeshRenderCommand{meshComp.mesh, transform},
+                   viewMatrix, projMatrix);
+    }
+
+    // Also flush any manually submitted meshes
+    for (const auto& meshCmd  : renderMeshBuffer) {
+        renderMesh(cmd, pass, meshCmd, viewMatrix, projMatrix);
+    }
+    renderMeshBuffer.clear();
+}
+void RenderSystem::render() {
+    if (!resourcesInitialized) return;
+
+    SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(device);
+    if (!cmd) return;
+
     SDL_GPUTexture* swapchainTex;
     Uint32 w, h;
     if (!SDL_WaitAndAcquireGPUSwapchainTexture(cmd, targetWindow, &swapchainTex, &w, &h)) {
         SDL_CancelGPUCommandBuffer(cmd);
         return;
     }
-        
-	camera.aspectRatio = (float)w / (float)h;
-    // Create depth texture if needed
+
+    camera.aspectRatio = (float)w / (float)h;
+
+    // Depth texture management (same as before)
     static SDL_GPUTexture* depthTexture = nullptr;
     static Uint32 depthW = 0, depthH = 0;
     if (!depthTexture || depthW != w || depthH != h) {
@@ -90,24 +154,12 @@ void RenderSystem::render() {
         return;
     }
 
-	if (!meshPipeline) {
-		SDL_Log("ERROR: meshPipeline is null! Pipeline was not created.");
-		SDL_EndGPURenderPass(pass);
-        SDL_CancelGPUCommandBuffer(cmd);
-		return;
-	}
-    SDL_BindGPUGraphicsPipeline(pass, meshPipeline);
+    internalRender(cmd, pass,
+                   camera.getViewMatrix(),
+                   camera.getProjectionMatrix(),
+                   w, h);
 
-    glm::mat4 cameraViewMat = camera.getViewMatrix();
-    glm::mat4 projMat = camera.getProjectionMatrix();
-    auto view = engine->getRegistry().view<MeshComponent, Transform>();
-    for (auto entity : view) {
-        auto& meshComp = view.get<MeshComponent>(entity);
-        auto& transform = view.get<Transform>(entity);
-        renderMesh(cmd, pass, MeshRenderCommand {meshComp.mesh, transform}, cameraViewMat, projMat);
-    }
     SDL_EndGPURenderPass(pass);
-    renderMeshBuffer.clear();
     SDL_SubmitGPUCommandBuffer(cmd);
 }
 

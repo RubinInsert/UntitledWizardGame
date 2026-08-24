@@ -19,7 +19,7 @@ void Editor::OnUpdate(double deltaTime) {
 }
 
 void Editor::OnRender() {
-
+    engine.getRenderSystem().render();
     // 2. Draw ImGui Editor Overlay
     // renderMenuBar();
     // renderHierarchyPanel();

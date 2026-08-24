@@ -111,8 +111,8 @@ void Game::OnShutdown() {
 
 }
 void Game::OnRender() {
-    worldMap.tileMap.render(engine.getRenderSystem(), camera, engine.getWorldSettings());
-
+    engine.getRenderSystem().render();
+    //worldMap.tileMap.render(engine.getRenderSystem(), camera, engine.getWorldSettings());
    
 }
 const Camera& Game::getCamera() const {
