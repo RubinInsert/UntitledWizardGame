@@ -6,4 +6,10 @@ vcpkg/buildtrees/
 vcpkg/packages/
 vcpkg/downloads/
 
+# Ignore local VS Code settings and workspace state
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+
+
 assets/textures/models/

@@ -1,0 +1,31 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Game",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/MyGame.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/build",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "C:/msys64/ucrt64/bin/gdb.exe"
+    },
+    {
+      "name": "Debug Editor",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/MyEditor.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/build",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "C:/msys64/ucrt64/bin/gdb.exe"
+    }
+  ]
+}
