@@ -9,12 +9,20 @@
 #include <entt/entt.hpp>
 #include "engine/render/RenderSystem.hpp"
 #include "engine/core/CollisionSystem.hpp"
-class Game;
+/// @brief A class that defines a generic application to be ran by the engine
+class IApplication {
+    public:
+        virtual ~IApplication() = default;
+        virtual void OnInit() {}
+        virtual void OnUpdate(double deltaTime) = 0;
+        virtual void OnRender() = 0;
+        virtual void OnShutdown() {}
+};
 class Engine {
     public:
         Engine(int screenWidth, int screenHeight);
         bool Init();
-        int Run(Game& game);
+        int Run(IApplication& game);
 
         AssetManager& getAssetManager();
         InputManager& getInputManager();

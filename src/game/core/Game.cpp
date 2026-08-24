@@ -20,6 +20,9 @@ Game::Game(Engine& engine)
 {
     createScene();
 }
+void Game::OnInit() {
+
+}
 void Game::createScene() {
         // Quick test: load cached barrel and submit
     Mesh* barrelMesh = engine.getAssetManager().getModel("barrel");
@@ -96,7 +99,7 @@ void Game::createScene() {
             //Game::collisionLayer = loadedCollisionLayer;
 }
 
-void Game::update () {
+void Game::OnUpdate (double deltaTime) {
     animatorSystem.update(engine.getRegistry(), engine.getTimeManager().getDeltaTime());
     playerController.update(engine.getRegistry(), player, engine.getInputManager(), engine.getTimeManager().getDeltaTime());
     // If left mouse button is down, allow CameraSystem to handle dragging
@@ -104,11 +107,11 @@ void Game::update () {
     cameraSystem.update(renderSys.getCamera(), engine.getInputManager());  // 3D camera
 }
 
-void Game::shutdown() {
+void Game::OnShutdown() {
 
 }
-void Game::render(RenderSystem& renderSystem) {
-    worldMap.tileMap.render(renderSystem, camera, engine.getWorldSettings());
+void Game::OnRender() {
+    worldMap.tileMap.render(engine.getRenderSystem(), camera, engine.getWorldSettings());
 
    
 }

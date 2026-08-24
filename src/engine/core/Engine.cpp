@@ -3,7 +3,6 @@
 #include "engine/ecs/components/Transform.hpp"
 #include "engine/render/SpriteRenderer.hpp"
 #include "engine/render/DebugDrawer.hpp"
-#include "game/core/Game.hpp"
 #include <SDL3/SDL.h>
 constexpr int kScreenWidth{ 1280 };
 constexpr int kScreenHeight{ 960 };
@@ -17,7 +16,7 @@ bool Engine::Init() {
     } else {
         // Initialization Successful
         // Create window
-        if( windowManager.createWindow("Untitled Wizard Game", kScreenWidth, kScreenHeight) == false ) {
+        if( windowManager.createWindow("Untitled Wizard app", kScreenWidth, kScreenHeight) == false ) {
             SDL_Log( "Window could not be created! SDL error: %s\n", SDL_GetError() );
             success = false;
         }
@@ -43,7 +42,7 @@ bool Engine::Init() {
     }
     return success;
 }
-int Engine::Run(Game& game) {
+int Engine::Run(IApplication& app) {
             Uint64 lastTime = SDL_GetPerformanceCounter();
             int frameCount = 0;
             double fpsTimer = 0.0;
@@ -80,19 +79,19 @@ int Engine::Run(Game& game) {
                     accumulator -= kFixedTimeStep;
                 }
 
-                game.update();
+                app.OnUpdate(delta);
                 // Fill the surface white
                 // SDL_SetRenderDrawColor(windowManager.getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
                 // SDL_RenderClear(windowManager.getRenderer());
                 
-                game.render(renderSystem);
-                spriteRenderer.render(registry, renderSystem, game.getCamera(), worldSettings);
+                app.OnRender();
+                //spriteRenderer.render(registry, renderSystem, app.getCamera(), worldSettings);
                 renderSystem.render();
-                // Render additional game renders
+                // Render additional app renders
                 // Render sprites through the sprite renderer
 
                 // Debug draws
-                //DebugDrawer::DrawIsometric(windowManager.getRenderer(), game.getCamera(), worldSettings);
+                //DebugDrawer::DrawIsometric(windowManager.getRenderer(), app.getCamera(), worldSettings);
                 // Update the screen
                 //SDL_RenderPresent(windowManager.getRenderer());
             }

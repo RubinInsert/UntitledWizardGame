@@ -8,13 +8,13 @@
 #include "game/core/CameraSystem.hpp"
 #include "game/player/PlayerController.hpp"
 #include "game/world/Map.hpp"
-class Game {
+class Game : public IApplication {
     public:
         Game(Engine& engine);
-        bool init ();
-        void update();
-        void shutdown();
-        void render(RenderSystem& renderSystem);
+        void OnInit() override;
+        void OnUpdate(double deltaTime) override;
+        void OnRender() override;
+        void OnShutdown() override;
         const Camera& getCamera() const;
 
     private:
