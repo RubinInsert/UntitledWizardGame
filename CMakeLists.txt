@@ -49,8 +49,24 @@ target_include_directories(EngineCore PUBLIC
     src
     include
 )
+# Compile ImGui core along with the SDL3 and SDL3_GPU backends
+add_library(imgui_local STATIC
+    thirdparty/imgui/imgui.cpp
+    thirdparty/imgui/imgui_draw.cpp
+    thirdparty/imgui/imgui_tables.cpp
+    thirdparty/imgui/imgui_widgets.cpp
+    thirdparty/imgui/backends/imgui_impl_sdl3.cpp
+    thirdparty/imgui/backends/imgui_impl_sdlgpu3.cpp
+)
 
+# Add include paths for ImGui core and the backends folder
+target_include_directories(imgui_local PUBLIC 
+    ${CMAKE_SOURCE_DIR}/thirdparty/imgui
+    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/backends
+)
+target_link_libraries(imgui_local PRIVATE SDL3::SDL3)
 target_link_libraries(EngineCore PUBLIC
+    imgui_local
     SDL3::SDL3
     SDL3_image::SDL3_image
     EnTT::EnTT
