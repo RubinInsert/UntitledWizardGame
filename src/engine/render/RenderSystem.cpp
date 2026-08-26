@@ -4,7 +4,6 @@
 #include <entt/entt.hpp>
 #include <engine/ecs/components/MeshComponent.hpp>
 #include <engine/ecs/components/Transform.hpp>
-
 RenderSystem::RenderSystem() {
     // Leave empty for now or initialize pointers to nullptr
 }
@@ -162,7 +161,6 @@ void RenderSystem::render() {
     SDL_EndGPURenderPass(pass);
     SDL_SubmitGPUCommandBuffer(cmd);
 }
-
 // To be moved to Asset Manager
 // https://github.com/TheSpydog/SDL_gpu_examples/blob/main/Examples/Common.c
 SDL_GPUShader* RenderSystem::LoadShader(

@@ -4,7 +4,7 @@ InputManager::InputManager()
     : currentMouseButtons(0), previousMouseButtons(0), 
       mousePosition({0.f, 0.f}), previousMousePosition({0.f, 0.f}), quitRequested(false) {}
 
-      void InputManager::update() {
+void InputManager::update(IApplication* app) {
             // Previous state of keys to determine if key is just pressed or is down.
             previousKeys = currentKeys;
             previousMouseButtons = currentMouseButtons;
@@ -13,6 +13,8 @@ InputManager::InputManager()
             SDL_Event e;
             SDL_zero(e);
             while (SDL_PollEvent(&e) == true) {
+              // Relay raw events directly to the application
+              if (app) app->OnEvent(e);
                 // If event is quit type
                 switch(e.type) {
                     case SDL_EVENT_QUIT:

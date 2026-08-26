@@ -52,6 +52,7 @@ target_include_directories(EngineCore PUBLIC
 # Compile ImGui core along with the SDL3 and SDL3_GPU backends
 add_library(imgui_local STATIC
     thirdparty/imgui/imgui.cpp
+    thirdparty/imgui/imgui_demo.cpp
     thirdparty/imgui/imgui_draw.cpp
     thirdparty/imgui/imgui_tables.cpp
     thirdparty/imgui/imgui_widgets.cpp
@@ -66,7 +67,6 @@ target_include_directories(imgui_local PUBLIC
 )
 target_link_libraries(imgui_local PRIVATE SDL3::SDL3)
 target_link_libraries(EngineCore PUBLIC
-    imgui_local
     SDL3::SDL3
     SDL3_image::SDL3_image
     EnTT::EnTT
@@ -74,7 +74,10 @@ target_link_libraries(EngineCore PUBLIC
     assimp::assimp
     box3d::box3d
 )
-
+# Needs to be decoupled from Engine later. Should only be linked to the Editor target
+target_link_libraries(EngineCore PUBLIC
+    imgui_local
+)
 if(SHADER_TARGET)
     add_dependencies(EngineCore ${SHADER_TARGET})
 endif()
@@ -89,7 +92,9 @@ target_link_libraries(MyGame PRIVATE EngineCore)
 # 3. EDITOR TARGET
 # ------------------------------------------------------------------------------
 add_executable(MyEditor "src/main_editor.cpp")
-target_link_libraries(MyEditor PRIVATE EngineCore)
+target_link_libraries(MyEditor PRIVATE 
+                    EngineCore
+                    imgui_local)
 
 # ------------------------------------------------------------------------------
 # 4. POST-BUILD ASSETS COPY

@@ -9,15 +9,7 @@
 #include <entt/entt.hpp>
 #include "engine/render/RenderSystem.hpp"
 #include "engine/core/CollisionSystem.hpp"
-/// @brief A class that defines a generic application to be ran by the engine
-class IApplication {
-    public:
-        virtual ~IApplication() = default;
-        virtual void OnInit() {}
-        virtual void OnUpdate(double deltaTime) = 0;
-        virtual void OnRender() = 0;
-        virtual void OnShutdown() {}
-};
+#include "engine/core/IApplication.hpp"
 class Engine {
     public:
         Engine(int screenWidth, int screenHeight);
@@ -28,6 +20,8 @@ class Engine {
         InputManager& getInputManager();
         TimeManager& getTimeManager();
         RenderSystem& getRenderSystem();
+        SDL_GPUDevice* getGPUDevice();
+        WindowManager& getWindowManager();
         CollisionSystem& getCollisionSystem();
         WorldSettings& getWorldSettings();
         int getScreenWidth();
@@ -39,6 +33,7 @@ class Engine {
         InputManager inputManager;
         TimeManager timeManager;
         RenderSystem renderSystem;
+        SDL_GPUDevice* gpuDevice;
         CollisionSystem collisionSystem;
         SpriteRenderer spriteRenderer;
         WorldSettings worldSettings;

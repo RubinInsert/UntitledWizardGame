@@ -21,7 +21,7 @@ bool Engine::Init() {
             success = false;
         }
         SDL_SetHint(SDL_HINT_RENDER_GPU_DEBUG, "1");
-        SDL_GPUDevice* gpuDevice = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_DXIL, true, nullptr);
+        gpuDevice = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_DXIL, true, nullptr);
         if (!gpuDevice) {
             SDL_Log("Failed to create GPU device: %s", SDL_GetError());
             return false;
@@ -49,6 +49,7 @@ int Engine::Run(IApplication& app) {
             constexpr double kFixedTimeStep = 1.0 / 60.0;
             double accumulator = 0.0;
 
+            app.OnInit();
             while (inputManager.shouldQuit() == false) {
                 
                 Uint64 now = SDL_GetPerformanceCounter();
@@ -72,7 +73,7 @@ int Engine::Run(IApplication& app) {
                 timeManager.update();
 
                 // Register inputs
-                inputManager.update();
+                inputManager.update(&app);
 
                 while (accumulator >= kFixedTimeStep) {
                     collisionSystem.Step(registry); // Runs b3World_Step(worldId, 1/60, 4)
@@ -109,6 +110,12 @@ TimeManager& Engine::getTimeManager() {
 }
 RenderSystem& Engine::getRenderSystem() {
     return renderSystem;
+}
+SDL_GPUDevice* Engine::getGPUDevice() {
+    return gpuDevice;
+}
+WindowManager& Engine::getWindowManager() {
+    return windowManager;
 }
 CollisionSystem& Engine::getCollisionSystem() {
     return collisionSystem;

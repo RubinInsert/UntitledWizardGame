@@ -20,7 +20,7 @@ public:
     void OnUpdate(double deltaTime) override;
     void OnRender() override;
     void OnShutdown() override;
-
+    void OnEvent(const SDL_Event& e) override;
     const Camera& getCamera() const;
 
 private:
@@ -29,7 +29,8 @@ private:
     void renderHierarchyPanel();
     void renderInspectorPanel();
     void renderViewportPanel();
-
+    // Holds the 3D Viewport
+    std::unique_ptr<RenderTarget> viewportTarget;
     void loadScene(const std::string& filepath);
     void saveScene(const std::string& filepath);
 

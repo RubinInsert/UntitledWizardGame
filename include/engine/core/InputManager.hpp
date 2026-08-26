@@ -2,10 +2,14 @@
 #define INPUTMANAGER_H
 #include <SDL3/SDL.h>
 #include <unordered_set>
+#include <functional>
+#include "engine/core/IApplication.hpp"
 class InputManager {
 public:
     InputManager();
-    void update();
+    /// @brief Updates the state of inputs
+    /// @param eventCallback An optional void function callback that takes in an SDL_Event& to allow hooking onto any input events
+    void update(IApplication* app = nullptr);
 
     // Keyboard Queries
     bool isKeyDown(SDL_Keycode key) const;
