@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 struct Camera {
-    glm::vec3 position{0.f, 0.f, 5.f};  // World position of camera
+    glm::vec3 position{8.f, 8.f, 12.f};  // World position of camera
     glm::vec3 target{0.f, 0.f, 0.f}; // What the camera is looking at
     glm::vec3 up{0.f, 1.f, 0.f};
     float fovY = 45.0f;

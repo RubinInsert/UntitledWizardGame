@@ -2,6 +2,7 @@
 #include "engine/render/Texture.hpp"
 #include "engine/core/Engine.h"
 #include "engine/render/pipelines/MeshPass.hpp"
+#include "engine/render/pipelines/LinePass.hpp"
 #include <entt/entt.hpp>
 #include <engine/ecs/components/MeshComponent.hpp>
 #include <engine/ecs/components/Transform.hpp>
@@ -23,7 +24,11 @@ void RenderSystem::initResources(int width, int height, Engine& eng) {
 
     meshPass = std::make_unique<MeshPass>();
     meshPass->init(device, targetWindow);
-    passOrder = { meshPass.get() };
+
+    linePass = std::make_unique<LinePass>();
+    linePass->init(device, targetWindow);
+
+    passOrder = { meshPass.get(), linePass.get() };
     resourcesInitialized = true;
     
 
@@ -31,6 +36,12 @@ void RenderSystem::initResources(int width, int height, Engine& eng) {
 }
 bool RenderSystem::SubmitMesh(Mesh* mesh, const Transform& transform) {
     return meshPass->submit(mesh, transform);
+}
+void RenderSystem::SubmitDebugLine(const glm::vec3& a, const glm::vec3& b, const SDL_FColor& color) {
+    if (linePass) linePass->submit(a, b, color);
+}
+void RenderSystem::ClearDebugLines() {
+    if (linePass) linePass->clear();
 }
 // New public method — renders to an off-screen target
 void RenderSystem::renderToTarget(RenderTarget& target) {

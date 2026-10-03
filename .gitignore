@@ -11,5 +11,8 @@ vcpkg/downloads/
 !.vscode/launch.json
 !.vscode/tasks.json
 
+# Ignore Imgui State
+imgui.ini
+
 
 assets/textures/models/

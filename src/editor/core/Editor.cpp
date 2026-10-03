@@ -50,6 +50,22 @@ void Editor::OnUpdate(double deltaTime) {
     cameraSystem.update(renderSys.getCamera(), engine.getInputManager());
     renderViewportPanel();
 
+    RenderSystem& rs = engine.getRenderSystem();
+    rs.ClearDebugLines();
+
+    const float  spacing = 1.0f;   // <- "1 unit"
+    const int    half    = 20;     // 41 lines each axis => ~40 units across
+    const float  extent  = half * spacing;
+    const SDL_FColor minor {0.35f, 0.35f, 0.40f, 0.6f};
+    const SDL_FColor axisX {0.85f, 0.25f, 0.25f, 0.9f};
+    const SDL_FColor axisZ {0.25f, 0.45f, 0.85f, 0.9f};
+
+    for (int i = -half; i <= half; ++i) {
+        float p = i * spacing;
+        rs.SubmitDebugLine({-extent, 0.f, p}, {extent, 0.f, p}, (i==0)? axisX : minor);
+        rs.SubmitDebugLine({p, 0.f, -extent}, {p, 0.f, extent}, (i==0)? axisZ : minor);
+    }
+
     engine.getRenderSystem().renderToTarget(*viewportTarget);
 
 }

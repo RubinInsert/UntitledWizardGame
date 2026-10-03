@@ -10,7 +10,7 @@
 #include "engine/render/IRenderPass.hpp"
 class Engine;
 class MeshPass;
-
+class LinePass;
 
 class RenderSystem {
     public:
@@ -44,6 +44,7 @@ class RenderSystem {
 
 
         std::unique_ptr<MeshPass> meshPass;
+        std::unique_ptr<LinePass> linePass;
         std::vector<IRenderPass*> passOrder;
         void prepareAll(SDL_GPUCommandBuffer* cmd);
         void drawAll(SDL_GPUCommandBuffer* cmd, SDL_GPURenderPass* pass);  

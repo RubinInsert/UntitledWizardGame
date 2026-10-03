@@ -78,6 +78,9 @@ target_link_libraries(EngineCore PUBLIC
 target_link_libraries(EngineCore PUBLIC
     imgui_local
 )
+
+compile_all_shaders(SHADER_TARGET)
+
 if(SHADER_TARGET)
     add_dependencies(EngineCore ${SHADER_TARGET})
 endif()
