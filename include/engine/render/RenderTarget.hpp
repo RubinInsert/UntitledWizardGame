@@ -5,7 +5,10 @@
 class RenderTarget {
 public:
     /// Create an off-screen render target of the given dimensions
-    RenderTarget(SDL_GPUDevice* device, int width, int height);
+    RenderTarget(SDL_GPUDevice* device,
+                int width,
+                int height,
+                SDL_GPUTextureFormat colorFormat = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM);
     ~RenderTarget();
 
     // No copy, only move
@@ -39,6 +42,7 @@ private:
 
     SDL_GPUDevice* mDevice = nullptr;
     SDL_GPUTexture* mColorTexture = nullptr;
+    SDL_GPUTextureFormat mColorFormat = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
     SDL_GPUTexture* mDepthTexture = nullptr;
     int mWidth = 0;
     int mHeight = 0;

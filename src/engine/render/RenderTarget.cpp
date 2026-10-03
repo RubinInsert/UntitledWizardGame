@@ -2,8 +2,8 @@
 #include <SDL3/SDL.h>
 #include <cstring>
 
-RenderTarget::RenderTarget(SDL_GPUDevice* device, int width, int height)
-    : mDevice(device), mWidth(width), mHeight(height) {
+RenderTarget::RenderTarget(SDL_GPUDevice* device, int width, int height, SDL_GPUTextureFormat colorFormat)
+    : mDevice(device), mWidth(width), mHeight(height), mColorFormat(colorFormat) {
     createTextures();
 }
 
@@ -45,7 +45,7 @@ void RenderTarget::createTextures() {
     // --- Color target texture ---
     SDL_GPUTextureCreateInfo colorInfo{};
     colorInfo.type          = SDL_GPU_TEXTURETYPE_2D;
-    colorInfo.format        = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM; // typical HDR: R16G16B16A16_FLOAT
+    colorInfo.format = mColorFormat;  // typical HDR: R16G16B16A16_FLOAT
     colorInfo.width         = static_cast<Uint32>(mWidth);
     colorInfo.height        = static_cast<Uint32>(mHeight);
     colorInfo.layer_count_or_depth = 1;

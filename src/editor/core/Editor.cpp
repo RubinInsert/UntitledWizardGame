@@ -11,6 +11,7 @@ void Editor::OnInit() {
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     // Setup Platform/Renderer backends
     ImGui_ImplSDL3_InitForSDLGPU(engine.getWindowManager().getWindow());
@@ -26,7 +27,9 @@ void Editor::OnInit() {
     // Create offscreen target for the 3D viewport
     int w = engine.getScreenWidth();
     int h = engine.getScreenHeight();
-    viewportTarget = std::make_unique<RenderTarget>(engine.getGPUDevice(), w, h);
+    SDL_GPUTextureFormat fmt = SDL_GetGPUSwapchainTextureFormat(
+    engine.getGPUDevice(), engine.getWindowManager().getWindow());
+    viewportTarget = std::make_unique<RenderTarget>(engine.getGPUDevice(), w, h, fmt);
 }
 
 void Editor::OnUpdate(double deltaTime) {
@@ -34,7 +37,7 @@ void Editor::OnUpdate(double deltaTime) {
     ImGui_ImplSDLGPU3_NewFrame();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
-
+    ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
     ImGui::ShowDemoWindow();
     // // 2. Build editor UI panels
     // renderMenuBar();
@@ -45,13 +48,42 @@ void Editor::OnUpdate(double deltaTime) {
     // 3. Editor camera control
     RenderSystem& renderSys = engine.getRenderSystem();
     cameraSystem.update(renderSys.getCamera(), engine.getInputManager());
+    renderViewportPanel();
 
-    // 4. Render 3D scene to offscreen viewport target
-    //    (This uses its own command buffer internally)
     engine.getRenderSystem().renderToTarget(*viewportTarget);
-}
 
+}
+// src/editor/core/Editor.cpp
+void Editor::renderViewportPanel() {
+    // Remove padding so the image fills the window exactly
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::Begin("Viewport");
+
+    ImVec2 avail = ImGui::GetContentRegionAvail();
+    int w = (int)avail.x;
+    int h = (int)avail.y;
+    if (w > 0 && h > 0) {
+        viewportTarget->resize(w, h);   // no-op if size unchanged
+    }
+
+    if (viewportTarget->getWidth() > 0 && viewportTarget->getHeight() > 0) {
+        ImGui::Image(
+            (ImTextureID)(intptr_t)viewportTarget->getColorTexture(),
+            ImVec2((float)viewportTarget->getWidth(),
+                   (float)viewportTarget->getHeight()),
+            ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f));
+
+        //viewportHovered = ImGui::IsItemHovered();
+    } else {
+        //viewportHovered = false;
+    }
+    //viewportFocused = ImGui::IsWindowFocused();
+
+    ImGui::End();
+    ImGui::PopStyleVar();
+}
 void Editor::OnRender() {
+
     // At this point, ImGui draw data is ready from OnUpdate
     ImGui::Render();
 
