@@ -41,15 +41,16 @@ void Editor::OnUpdate(double deltaTime) {
     ImGui::ShowDemoWindow();
     // // 2. Build editor UI panels
     // renderMenuBar();
-    // renderHierarchyPanel();
+    renderHierarchyPanel();
     // renderInspectorPanel();
-    // renderViewportPanel();
+    renderViewportPanel();
 
     // 3. Editor camera control
     RenderSystem& renderSys = engine.getRenderSystem();
-    cameraSystem.update(renderSys.getCamera(), engine.getInputManager());
-    renderViewportPanel();
-
+    ImGuiIO& io = ImGui::GetIO();
+    if (viewportHovered && !io.WantTextInput) {
+        cameraSystem.update(renderSys.getCamera(), engine.getInputManager());
+    }
     RenderSystem& rs = engine.getRenderSystem();
     rs.ClearDebugLines();
 
@@ -68,6 +69,12 @@ void Editor::OnUpdate(double deltaTime) {
 
     engine.getRenderSystem().renderToTarget(*viewportTarget);
 
+}
+void Editor::renderHierarchyPanel() {
+    ImGui::Begin("Hierarchy");
+    // widgets here
+    ImGui::Text("Entities:");
+    ImGui::End();
 }
 // src/editor/core/Editor.cpp
 void Editor::renderViewportPanel() {
@@ -89,9 +96,9 @@ void Editor::renderViewportPanel() {
                    (float)viewportTarget->getHeight()),
             ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f));
 
-        //viewportHovered = ImGui::IsItemHovered();
+        viewportHovered = ImGui::IsItemHovered();
     } else {
-        //viewportHovered = false;
+        viewportHovered = false;
     }
     //viewportFocused = ImGui::IsWindowFocused();
 

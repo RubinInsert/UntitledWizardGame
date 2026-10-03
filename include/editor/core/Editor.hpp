@@ -39,7 +39,8 @@ private:
     Camera camera{};
     CameraSystem cameraSystem{};
     Map worldMap;
-
+    // Tracks whether the engine-owned viewport is in focus
+    bool viewportHovered{false};
     // Editor State
     EditorMode currentMode{EditorMode::Edit};
     entt::entity selectedEntity{entt::null};
